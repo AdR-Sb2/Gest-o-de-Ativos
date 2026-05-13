@@ -1,6 +1,6 @@
 // 1. CONFIGURAÇÕES INICIAIS
 const LINK_PLANILHA_ONLINE = 'Atributos 13.05.csv'; // Lendo direto da pasta do GitHub
-const URL_PONTE_GOOGLE = 'COLE_AQUI_O_URL_DO_SEU_APPS_SCRIPT'; // O link da "ponte"
+const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbx92T_406GeyO8spuKcnfFcWtCetELewf6DIPldz8OArNoQqbn6kj2oXdLG2wwWylfbEQ/exec'; // O link da "ponte"
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
