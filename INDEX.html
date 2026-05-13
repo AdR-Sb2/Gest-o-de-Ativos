@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualização de Atributos - Campo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Atualização de Ativos</h1>
+            <p>Insira a TAG para validar e preencher os atributos.</p>
+        </header>
+
+        <form id="dataEntryForm">
+            <div class="section-block">
+                <h2>1. Identificação do Ativo</h2>
+                <div class="form-group">
+                    <label for="tag_comp">Tag do Componente (Tag Comp) *</label>
+                    <input type="text" id="tag_comp" placeholder="Ex: RJB-P-151314" required>
+                    <button type="button" id="btnVerificar" class="btn-check">Verificar Tag</button>
+                </div>
+                <div id="infoAtivo" style="display:none; margin-top:10px; font-size: 0.9em; color: #1e293b;">
+                    <p><strong>Unidade:</strong> <span id="display_un"></span></p>
+                    <p><strong>Município:</strong> <span id="display_mun"></span></p>
+                    <p><strong>Equipamento:</strong> <span id="display_desc"></span></p>
+                </div>
+            </div>
+
+            <div id="blocoAtributos" class="section-block" style="display:none;">
+                <h2>2. Atributos para Atualizar</h2>
+                <div id="camposDinamicos">
+                    </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" id="btnSalvar" class="btn-submit" style="display:none;">Salvar Alterações</button>
+                <button type="button" id="btnExport" class="btn-export">Baixar Relatório (CSV)</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
