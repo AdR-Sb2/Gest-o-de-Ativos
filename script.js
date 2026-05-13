@@ -1,11 +1,11 @@
 // 1. CONFIGURAÇÕES INICIAIS
-const LINK_PLANILHA_ONLINE = 'Atributos 13.05.csv'; // Lendo direto da pasta do GitHub
-const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbx92T_406GeyO8spuKcnfFcWtCetELewf6DIPldz8OArNoQqbn6kj2oXdLG2wwWylfbEQ/exec'; // O link da "ponte"
+const LINK_PLANILHA_ONLINE = 'Atributos 13.05.csv'; 
+const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbx92T_406GeyO8spuKcnfFcWtCetELewf6DIPldz8OArNoQqbn6kj2oXdLG2wwWylfbEQ/exec'; 
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
 
-// 2. CARREGAMENTO DA BASE (GITHUB)
+// 2. CARREGAMENTO DA BASE
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ONLINE);
@@ -19,56 +19,74 @@ window.onload = async function() {
 
 function processarCSV(csvText) {
     baseDadosAtributos = [];
+    // Detecta separador e limpa caracteres invisíveis
     const separador = csvText.includes(';') ? ';' : ',';
     const linhas = csvText.split(/\r?\n/).filter(l => l.trim() !== "");
     
     for (let i = 1; i < linhas.length; i++) {
-        const colunas = linhas[i].replace(/"/g, "").split(separador);
+        // Remove aspas e espaços extras de cada coluna
+        const colunas = linhas[i].split(separador).map(c => c.replace(/"/g, "").trim());
+        
         if (colunas.length >= 5) {
             baseDadosAtributos.push({
                 un: colunas[0],
                 mun: colunas[1],
-                tag: colunas[4]?.trim(),
+                tag: colunas[4], // Coluna E (Tag Comp)
                 desc: colunas[5],
                 atrib: colunas[6],
-                valor: colunas[7]?.trim()
+                valor: colunas[7]
             });
         }
     }
+    console.log("Base carregada com sucesso. Total de linhas: " + baseDadosAtributos.length);
 }
 
-// 3. VERIFICAÇÃO DE TAG
+// 3. VERIFICAÇÃO DE TAG (COM TRATAMENTO DE ERRO)
 document.getElementById('btnVerificar').addEventListener('click', function() {
-    const busca = document.getElementById('tag_comp').value.trim().toUpperCase();
-    const resultados = baseDadosAtributos.filter(item => item.tag.toUpperCase() === busca);
+    const inputTag = document.getElementById('tag_comp').value.trim().toUpperCase();
+    
+    if (!inputTag) {
+        alert("Por favor, digite uma TAG.");
+        return;
+    }
+
+    // Filtra ignorando espaços ou diferenças de maiúsculas
+    const resultados = baseDadosAtributos.filter(item => {
+        return item.tag && item.tag.toUpperCase() === inputTag;
+    });
 
     if (resultados.length > 0) {
         document.getElementById('infoAtivo').style.display = 'block';
-        document.getElementById('display_un').innerText = resultados[0].un;
-        document.getElementById('display_mun').innerText = resultados[0].mun;
-        document.getElementById('display_desc').innerText = resultados[0].desc;
+        document.getElementById('display_un').innerText = resultados[0].un || "---";
+        document.getElementById('display_mun').innerText = resultados[0].mun || "---";
+        document.getElementById('display_desc').innerText = resultados[0].desc || "---";
 
         const campos = document.getElementById('camposDinamicos');
         campos.innerHTML = ''; 
+        
         resultados.forEach(res => {
-            campos.innerHTML += `
-                <div class="form-group">
-                    <label>${res.atrib}</label>
-                    <input type="text" class="input-atributo" data-atributo="${res.atrib}" value="${res.valor || ''}">
-                </div>`;
+            if(res.atrib) {
+                campos.innerHTML += `
+                    <div class="form-group">
+                        <label>${res.atrib}</label>
+                        <input type="text" class="input-atributo" data-atributo="${res.atrib}" 
+                               placeholder="Valor: ${res.valor || ''}" value="${res.valor || ''}">
+                    </div>`;
+            }
         });
+        
         document.getElementById('blocoAtributos').style.display = 'block';
         document.getElementById('btnSalvar').style.display = 'block';
     } else {
-        alert("Tag não encontrada.");
+        alert("Tag '" + inputTag + "' não encontrada.\n\nVerifique se digitou corretamente ou se o arquivo CSV está atualizado no GitHub.");
     }
 });
 
-// 4. SALVAMENTO E ENVIO AUTOMÁTICO (ESTA PARTE MUDOU)
+// 4. SALVAMENTO E ENVIO
 document.getElementById('dataEntryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const tag = document.getElementById('tag_comp').value;
+    const tag = document.getElementById('tag_comp').value.trim();
     const campos = document.querySelectorAll('.input-atributo');
     const dadosParaEnviar = [];
     
@@ -83,27 +101,25 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
         dadosParaEnviar.push(item);
     });
 
-    // Salva no navegador por segurança (Backup local)
     localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
     atualizarContador();
 
-    // ENVIO PARA O GOOGLE SHEETS
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
         mode: 'no-cors',
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        alert('Dados salvos e enviados para a nuvem!');
-        location.reload(); // Recarrega para limpar o formulário
+        alert('Dados salvos e enviados com sucesso!');
+        location.reload();
     })
     .catch(err => {
-        alert('Salvo apenas no celular (sem internet). Exporte o CSV ao final do dia.');
+        alert('Salvo apenas localmente (sem sinal).');
         location.reload();
     });
 });
 
-// 5. EXPORTAÇÃO MANUAL (PLANO B)
+// 5. EXPORTAÇÃO E CONTADOR
 document.getElementById('btnExport').addEventListener('click', function() {
     if (respostasColetadas.length === 0) return alert("Sem dados.");
     let csv = "\uFEFFTag;Atributo;Valor Coletado;Data Hora\n";
@@ -113,7 +129,7 @@ document.getElementById('btnExport').addEventListener('click', function() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `coleta_campo_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `coleta_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
 });
 
