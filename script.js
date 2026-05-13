@@ -1,10 +1,11 @@
-// CONFIGURAÇÃO: Cole aqui o link que você gerou no Google Sheets (Publicar na Web como CSV)
-const LINK_PLANILHA_ONLINE = 'https://drive.google.com/file/d/1CfDkSGb14oljnBBDIdzEQ1vxK80Ht1am/pub?output=csv';
+// 1. CONFIGURAÇÕES INICIAIS
+const LINK_PLANILHA_ONLINE = 'Atributos 13.05.csv'; // Lendo direto da pasta do GitHub
+const URL_PONTE_GOOGLE = 'COLE_AQUI_O_URL_DO_SEU_APPS_SCRIPT'; // O link da "ponte"
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
 
-// 1. Carregar os dados ao abrir a página
+// 2. CARREGAMENTO DA BASE (GITHUB)
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ONLINE);
@@ -12,119 +13,111 @@ window.onload = async function() {
         processarCSV(data);
         atualizarContador();
     } catch (error) {
-        console.error("Erro ao carregar a base online:", error);
-        // Tenta carregar local se o online falhar (fallback)
-        fetch('Atributos 13.05.csv')
-            .then(res => res.text())
-            .then(data => processarCSV(data))
-            .catch(err => alert("Erro ao carregar base de dados."));
+        console.error("Erro ao carregar base local.");
     }
 };
 
 function processarCSV(csvText) {
-    baseDadosAtributos = []; // Limpa antes de preencher
-    const linhas = csvText.split('\n');
+    baseDadosAtributos = [];
+    const separador = csvText.includes(';') ? ';' : ',';
+    const linhas = csvText.split(/\r?\n/).filter(l => l.trim() !== "");
     
     for (let i = 1; i < linhas.length; i++) {
-        const colunas = linhas[i].split(';');
-        if (colunas.length > 1) {
+        const colunas = linhas[i].replace(/"/g, "").split(separador);
+        if (colunas.length >= 5) {
             baseDadosAtributos.push({
                 un: colunas[0],
-                municipio: colunas[1],
-                tagPlanta: colunas[2],
-                descPlanta: colunas[3],
-                tagComp: colunas[4]?.trim(),
-                descComp: colunas[5],
-                atributo: colunas[6],
-                valorAtual: colunas[7]?.trim()
+                mun: colunas[1],
+                tag: colunas[4]?.trim(),
+                desc: colunas[5],
+                atrib: colunas[6],
+                valor: colunas[7]?.trim()
             });
         }
     }
-    console.log("Base de dados carregada:", baseDadosAtributos.length, "linhas.");
 }
 
-// 2. Verificar a Tag digitada
+// 3. VERIFICAÇÃO DE TAG
 document.getElementById('btnVerificar').addEventListener('click', function() {
-    const tagBusca = document.getElementById('tag_comp').value.trim();
-    if (!tagBusca) return alert("Digite uma TAG primeiro.");
-
-    const resultados = baseDadosAtributos.filter(item => item.tagComp === tagBusca);
+    const busca = document.getElementById('tag_comp').value.trim().toUpperCase();
+    const resultados = baseDadosAtributos.filter(item => item.tag.toUpperCase() === busca);
 
     if (resultados.length > 0) {
-        // Mostra info básica
         document.getElementById('infoAtivo').style.display = 'block';
         document.getElementById('display_un').innerText = resultados[0].un;
-        document.getElementById('display_mun').innerText = resultados[0].municipio;
-        document.getElementById('display_desc').innerText = resultados[0].descComp;
+        document.getElementById('display_mun').innerText = resultados[0].mun;
+        document.getElementById('display_desc').innerText = resultados[0].desc;
 
-        // Gera campos para os atributos
-        const containerCampos = document.getElementById('camposDinamicos');
-        containerCampos.innerHTML = ''; 
-        
+        const campos = document.getElementById('camposDinamicos');
+        campos.innerHTML = ''; 
         resultados.forEach(res => {
-            const div = document.createElement('div');
-            div.className = 'form-group';
-            div.innerHTML = `
-                <label>${res.atributo}</label>
-                <input type="text" class="input-atributo" data-atributo="${res.atributo}" 
-                       placeholder="Valor atual: ${res.valorAtual || 'Vazio'}" value="${res.valorAtual || ''}">
-            `;
-            containerCampos.appendChild(div);
+            campos.innerHTML += `
+                <div class="form-group">
+                    <label>${res.atrib}</label>
+                    <input type="text" class="input-atributo" data-atributo="${res.atrib}" value="${res.valor || ''}">
+                </div>`;
         });
-
         document.getElementById('blocoAtributos').style.display = 'block';
         document.getElementById('btnSalvar').style.display = 'block';
     } else {
-        alert("Tag não encontrada na base de dados.");
+        alert("Tag não encontrada.");
     }
 });
 
-// 3. Salvar os dados coletados
+// 4. SALVAMENTO E ENVIO AUTOMÁTICO (ESTA PARTE MUDOU)
 document.getElementById('dataEntryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const tag = document.getElementById('tag_comp').value;
     const campos = document.querySelectorAll('.input-atributo');
+    const dadosParaEnviar = [];
     
     campos.forEach(campo => {
-        respostasColetadas.push({
+        const item = {
             tag: tag,
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
             dataHora: new Date().toLocaleString('pt-BR')
-        });
+        };
+        respostasColetadas.push(item);
+        dadosParaEnviar.push(item);
     });
 
+    // Salva no navegador por segurança (Backup local)
     localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
     atualizarContador();
-    alert('Dados salvos com sucesso!');
-    
-    // Resetar campos
-    document.getElementById('blocoAtributos').style.display = 'none';
-    document.getElementById('infoAtivo').style.display = 'none';
-    document.getElementById('dataEntryForm').reset();
+
+    // ENVIO PARA O GOOGLE SHEETS
+    fetch(URL_PONTE_GOOGLE, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(dadosParaEnviar)
+    })
+    .then(() => {
+        alert('Dados salvos e enviados para a nuvem!');
+        location.reload(); // Recarrega para limpar o formulário
+    })
+    .catch(err => {
+        alert('Salvo apenas no celular (sem internet). Exporte o CSV ao final do dia.');
+        location.reload();
+    });
 });
 
-// 4. Exportar CSV
+// 5. EXPORTAÇÃO MANUAL (PLANO B)
 document.getElementById('btnExport').addEventListener('click', function() {
-    if (respostasColetadas.length === 0) return alert("Sem dados para exportar.");
-
+    if (respostasColetadas.length === 0) return alert("Sem dados.");
     let csv = "\uFEFFTag;Atributo;Valor Coletado;Data Hora\n";
     respostasColetadas.forEach(r => {
         csv += `${r.tag};${r.atributo};${r.valorNovo};${r.dataHora}\n`;
     });
-
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `coleta_campo_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`);
+    link.href = URL.createObjectURL(blob);
+    link.download = `coleta_campo_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
 });
 
 function atualizarContador() {
-    const contadorElemento = document.getElementById('contador');
-    if (contadorElemento) {
-        contadorElemento.innerText = respostasColetadas.length;
-    }
+    const c = document.getElementById('contador');
+    if (c) c.innerText = respostasColetadas.length;
 }
