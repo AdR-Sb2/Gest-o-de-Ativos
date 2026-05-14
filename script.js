@@ -4,13 +4,18 @@ const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbx92T_406GeyO8
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
-let tagValidadaGlobal = ""; // Variável absoluta para armazenar a tag encontrada
+let tagValidadaGlobal = ""; 
 
-// 2. CARREGAMENTO DA BASE
+// 2. CARREGAMENTO DA BASE COM CORREÇÃO DE ACENTOS
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ONLINE);
-        const data = await response.text();
+        const buffer = await response.arrayBuffer();
+        
+        // Decodifica usando 'windows-1252' para aceitar acentos vindos do Excel
+        const decoder = new TextDecoder('windows-1252');
+        const data = decoder.decode(buffer);
+        
         processarCSV(data);
         atualizarContador();
     } catch (error) {
@@ -29,7 +34,7 @@ function processarCSV(csvText) {
             baseDadosAtributos.push({
                 un: colunas[0],
                 mun: colunas[1],
-                tag: colunas[4], // Tag Comp
+                tag: colunas[4], 
                 desc: colunas[5],
                 atrib: colunas[6],
                 valor: colunas[7]
@@ -38,7 +43,7 @@ function processarCSV(csvText) {
     }
 }
 
-// 3. VERIFICAÇÃO DE TAG
+// 3. VERIFICAÇÃO DE TAG (COM BLOQUEIO DE CAMPO)
 document.getElementById('btnVerificar').addEventListener('click', function() {
     const campoInput = document.getElementById('tag_comp');
     const inputTag = campoInput.value.trim().toUpperCase();
@@ -53,11 +58,11 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
     });
 
     if (resultados.length > 0) {
-        // --- AQUI ESTÁ A CHAVE DA SOLUÇÃO ---
-        tagValidadaGlobal = resultados[0].tag; // Salva a tag oficial da planilha
-        campoInput.value = tagValidadaGlobal;   // Força o texto do campo a ser a tag oficial
-        campoInput.readOnly = true;            // Bloqueia o campo para não permitirem edição manual
-        campoInput.style.backgroundColor = "#e2e8f0"; // Cor de campo desabilitado
+        // Trava a Tag e bloqueia o campo para evitar que o usuário mude depois de validar
+        tagValidadaGlobal = resultados[0].tag; 
+        campoInput.value = tagValidadaGlobal;
+        campoInput.readOnly = true; 
+        campoInput.style.backgroundColor = "#f1f5f9"; 
         
         document.getElementById('infoAtivo').style.display = 'block';
         document.getElementById('display_un').innerText = resultados[0].un || "---";
@@ -89,7 +94,6 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
 document.getElementById('dataEntryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Garantia extra: Se por algum motivo a tag global estiver vazia, não prossegue
     if (!tagValidadaGlobal) {
         alert("Erro: Valide a TAG antes de salvar.");
         return;
@@ -100,14 +104,13 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
     
     campos.forEach(campo => {
         dadosParaEnviar.push({
-            tag: tagValidadaGlobal, // <--- USA SEMPRE A TAG QUE FOI VALIDADA
+            tag: tagValidadaGlobal, // Envia a tag validada, não a que está no input
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
             dataHora: new Date().toLocaleString('pt-BR')
         });
     });
 
-    // Salva no histórico local
     respostasColetadas.push(...dadosParaEnviar);
     localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
 
@@ -118,10 +121,10 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
     })
     .then(() => {
         alert('Dados salvos com sucesso!');
-        location.reload(); // Recarrega para limpar os campos e o readOnly
+        location.reload(); 
     })
     .catch(err => {
-        alert('Salvo apenas localmente (sem sinal).');
+        alert('Salvo apenas localmente.');
         location.reload();
     });
 });
