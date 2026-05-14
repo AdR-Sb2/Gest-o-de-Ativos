@@ -164,43 +164,59 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
     }
 });
 
-// 7. ENVIO DE DADOS (Incluso Foto)
+// 7. ENVIO DE DADOS (Incluso Foto e Verificação)
 document.getElementById('dataEntryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    if (!tagValidadaGlobal) return alert("Valide a TAG primeiro.");
+    // 1. Verificações de segurança
+    if (!tagValidadaGlobal) {
+        alert("Valide a TAG primeiro clicando no botão 'Verificar Tag'.");
+        return;
+    }
 
     const equipe = document.getElementById('equipe').value;
-    const campos = document.querySelectorAll('.input-atributo');
+    if (!equipe) {
+        alert("Por favor, selecione uma equipe.");
+        return;
+    }
+
+    // 2. Captura da foto (se existir)
     const fileInput = document.getElementById('anexo');
     let fotoBase64 = "";
 
-    // Se houver foto, converte para string
-    if (fileInput && fileInput.files.length > 0) {
-        try {
-            fotoBase64 = await lerArquivo(fileInput.files[0]);
-        } catch (err) {
-            console.error("Erro ao processar imagem", err);
-        }
+    // Pegamos o preview da imagem caso ela já tenha sido carregada pelo evento 'change'
+    const imgPreview = document.getElementById('fotoPreview');
+    if (imgPreview && imgPreview.src.includes("base64")) {
+        fotoBase64 = imgPreview.src;
     }
 
+    // 3. Montagem dos dados
+    const campos = document.querySelectorAll('.input-atributo');
     const dadosParaEnviar = [];
-    
+    const dataHoraAtual = new Date().toLocaleString('pt-BR');
+
     campos.forEach(campo => {
         const item = {
             equipe: equipe,
             tag: tagValidadaGlobal,
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
-            evidencia: fotoBase64, // Nova propriedade com a foto
-            dataHora: new Date().toLocaleString('pt-BR')
+            evidencia: fotoBase64, // Aqui vai o link que o Google Script vai converter
+            dataHora: dataHoraAtual
         };
         respostasColetadas.push(item);
         dadosParaEnviar.push(item);
     });
 
+    // 4. Salvamento Local e Envio
     localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
     atualizarContador();
+
+    // Feedback visual para o usuário saber que está enviando
+    const btnSalvar = document.getElementById('btnSalvar');
+    const textoOriginal = btnSalvar.innerText;
+    btnSalvar.disabled = true;
+    btnSalvar.innerText = "Enviando... Aguarde.";
 
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
@@ -208,11 +224,12 @@ document.getElementById('dataEntryForm').addEventListener('submit', async functi
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        alert('Dados e evidência enviados!');
+        alert('Dados e evidência enviados com sucesso!');
         location.reload(); 
     })
     .catch(err => {
-        alert('Erro no envio. Salvo localmente.');
+        console.error("Erro no envio:", err);
+        alert('Erro ao enviar para a nuvem. Os dados foram salvos apenas no seu celular/computador por enquanto.');
         location.reload();
     });
 });
