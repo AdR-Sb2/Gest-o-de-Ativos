@@ -28,9 +28,9 @@ window.onload = async function() {
 
 async function carregarEquipes() {
     const selectEquipe = document.getElementById('equipe');
+    selectEquipe.disabled = true; // Desabilita enquanto carrega
     
     try {
-        // Faz uma chamada ao Google Script pedindo a lista de colaboradores
         const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
         const lista = await response.json(); 
 
@@ -48,6 +48,8 @@ async function carregarEquipes() {
     } catch (error) {
         console.error("Erro ao buscar equipes:", error);
         selectEquipe.innerHTML = '<option value="">Erro ao carregar lista</option>';
+    } finally {
+        selectEquipe.disabled = false; // Reabilita após o processo
     }
 }
 
