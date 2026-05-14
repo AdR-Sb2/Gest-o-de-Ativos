@@ -66,28 +66,46 @@ function processarCSV(csvText) {
     }
 }
 
-// 5. FUNÇÃO PARA INJETAR CAMPO DE FOTO (Via JS)
+// 5. FUNÇÃO PARA INJETAR CAMPO DE FOTO E PREVIEW (100% via JS)
 function adicionarInterfaceAnexo() {
-    // Evita duplicar o campo se o usuário clicar em verificar várias vezes
     if (document.getElementById('anexo')) return;
 
     const camposContainer = document.getElementById('camposDinamicos');
     const divAnexo = document.createElement('div');
     divAnexo.className = 'form-group';
-    divAnexo.style.marginTop = '20px';
-    divAnexo.style.padding = '15px';
-    divAnexo.style.border = '2px dashed #cbd5e1';
-    divAnexo.style.borderRadius = '12px';
-    divAnexo.style.backgroundColor = '#f8fafc';
+    divAnexo.style.cssText = 'margin-top: 20px; padding: 15px; border: 2px dashed #cbd5e1; border-radius: 12px; backgroundColor: #f8fafc;';
 
     divAnexo.innerHTML = `
         <label style="font-weight: bold; color: #1e293b;">📸 Foto de Evidência (Opcional)</label>
         <input type="file" id="anexo" accept="image/*" capture="environment" 
                style="margin-top: 10px; width: 100%; cursor: pointer;">
+        
+        <div id="areaPreview" style="display: none; margin-top: 15px; text-align: center;">
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Pré-visualização da captura:</p>
+            <img id="fotoPreview" src="" style="max-width: 100%; border-radius: 8px; border: 1px solid #ddd;">
+        </div>
+        
         <p style="font-size: 0.75rem; color: #64748b; margin-top: 5px;">Tire uma foto da placa ou do equipamento.</p>
     `;
     
     camposContainer.appendChild(divAnexo);
+
+    // Lógica para mostrar o preview assim que o usuário selecionar o arquivo
+    document.getElementById('anexo').addEventListener('change', async function() {
+        const file = this.files[0];
+        if (file) {
+            try {
+                const fotoBase64 = await lerArquivo(file);
+                const imgPreview = document.getElementById('fotoPreview');
+                const divPreview = document.getElementById('areaPreview');
+                
+                imgPreview.src = fotoBase64;
+                divPreview.style.display = 'block';
+            } catch (err) {
+                console.error("Erro ao gerar preview", err);
+            }
+        }
+    });
 }
 
 // Auxiliar para converter imagem em texto
