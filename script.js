@@ -27,7 +27,8 @@ window.onload = async function() {
 async function carregarEquipes() {
     const selectEquipe = document.getElementById('equipe');
     try {
-        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
+        // Adicionamos um timestamp para evitar que o navegador use uma resposta antiga (cache)
+        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores&t=" + new Date().getTime());
         const lista = await response.json(); 
 
         if (Array.isArray(lista) && lista.length > 0) {
@@ -41,7 +42,7 @@ async function carregarEquipes() {
         }
     } catch (error) {
         console.error("Erro ao carregar equipes:", error);
-        selectEquipe.innerHTML = '<option value="">Erro ao conectar com a planilha</option>';
+        selectEquipe.innerHTML = '<option value="">Erro ao conectar. Tente atualizar a página.</option>';
     }
 }
 
