@@ -143,6 +143,33 @@ function atualizarContador() {
     if (c) c.innerText = respostasColetadas.length;
 }
 
+// Função para buscar colaboradores/equipes da aba específica
+async function carregarColaboradores() {
+    try {
+        // Faz a chamada para a sua URL do Google Apps Script
+        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
+        const colaboradores = await response.json();
+        
+        const selectEquipe = document.getElementById('equipe');
+        selectEquipe.innerHTML = '<option value="">Selecione...</option>'; // Limpa e reseta
+        
+        colaboradores.forEach(nome => {
+            const option = document.createElement('option');
+            option.value = nome;
+            option.textContent = nome;
+            selectEquipe.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Erro ao carregar colaboradores:", error);
+    }
+}
+
+// Chame esta função dentro do window.onload
+window.onload = async function() {
+    // ... seu código anterior de carregar o CSV ...
+    carregarColaboradores();
+};
+
 document.getElementById('btnExport').addEventListener('click', function() {
     if (respostasColetadas.length === 0) return alert("Não há dados para exportar.");
     
