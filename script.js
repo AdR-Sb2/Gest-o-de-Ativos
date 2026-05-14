@@ -1,4 +1,4 @@
-// 1. CONFIGURAÇÕES INICIAIS
+// 1. CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
 const LINK_PLANILHA_ONLINE = 'Atributos 13.05.csv'; 
 const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbx92T_406GeyO8spuKcnfFcWtCetELewf6DIPldz8OArNoQqbn6kj2oXdLG2wwWylfbEQ/exec'; 
 
@@ -6,20 +6,18 @@ let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
 let tagValidadaGlobal = ""; 
 
-// 2. CARREGAMENTO DA BASE COM CORREÇÃO DE ACENTOS
+// 2. CARREGAMENTO DA BASE (Tratamento de Acentos do Excel)
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ONLINE);
         const buffer = await response.arrayBuffer();
-        
-        // Decodifica usando 'windows-1252' para aceitar acentos vindos do Excel
+        // Decode para windows-1252 para suportar acentos vindos do Excel
         const decoder = new TextDecoder('windows-1252');
         const data = decoder.decode(buffer);
-        
         processarCSV(data);
         atualizarContador();
     } catch (error) {
-        console.error("Erro ao carregar base local.");
+        console.error("Erro ao carregar a base de dados. Verifique o nome do arquivo no GitHub.");
     }
 };
 
@@ -32,53 +30,59 @@ function processarCSV(csvText) {
         const colunas = linhas[i].split(separador).map(c => c.replace(/"/g, "").trim());
         if (colunas.length >= 5) {
             baseDadosAtributos.push({
-                un: colunas[0],
-                mun: colunas[1],
-                tag: colunas[4], 
-                desc: colunas[5],
-                atrib: colunas[6],
-                valor: colunas[7]
+                un: colunas[0],   // Unidade
+                mun: colunas[1],  // Município
+                tag: colunas[4],  // Tag Comp
+                desc: colunas[5], // Descrição/Equipamento
+                atrib: colunas[6], // Atributo
+                valor: colunas[7]  // Valor Atual
             });
         }
     }
 }
 
-// 3. VERIFICAÇÃO DE TAG (COM BLOQUEIO DE CAMPO)
+// 3. LOGICA DE VERIFICAÇÃO E EXIBIÇÃO
 document.getElementById('btnVerificar').addEventListener('click', function() {
     const campoInput = document.getElementById('tag_comp');
     const inputTag = campoInput.value.trim().toUpperCase();
+    const equipe = document.getElementById('equipe').value;
+
+    if (!equipe) {
+        alert("Por favor, selecione a sua EQUIPE antes de pesquisar.");
+        return;
+    }
     
     if (!inputTag) {
-        alert("Por favor, digite uma TAG.");
+        alert("Digite uma TAG para pesquisar.");
         return;
     }
 
-    const resultados = baseDadosAtributos.filter(item => {
-        return item.tag && item.tag.toUpperCase() === inputTag;
-    });
+    const resultados = baseDadosAtributos.filter(item => item.tag && item.tag.toUpperCase() === inputTag);
 
     if (resultados.length > 0) {
-        // Trava a Tag e bloqueia o campo para evitar que o usuário mude depois de validar
+        // Trava a TAG correta na memória e bloqueia o campo visual
         tagValidadaGlobal = resultados[0].tag; 
         campoInput.value = tagValidadaGlobal;
         campoInput.readOnly = true; 
         campoInput.style.backgroundColor = "#f1f5f9"; 
         
+        // Exibe informações do Ativo (Unidade, Mun, Equip)
         document.getElementById('infoAtivo').style.display = 'block';
         document.getElementById('display_un').innerText = resultados[0].un || "---";
         document.getElementById('display_mun').innerText = resultados[0].mun || "---";
         document.getElementById('display_desc').innerText = resultados[0].desc || "---";
 
-        const campos = document.getElementById('camposDinamicos');
-        campos.innerHTML = ''; 
+        // Gera os campos de atributos dinamicamente
+        const camposContainer = document.getElementById('camposDinamicos');
+        camposContainer.innerHTML = ''; 
         
         resultados.forEach(res => {
             if(res.atrib) {
-                campos.innerHTML += `
+                camposContainer.innerHTML += `
                     <div class="form-group">
                         <label>${res.atrib}</label>
                         <input type="text" class="input-atributo" data-atributo="${res.atrib}" 
-                               placeholder="Valor: ${res.valor || ''}" value="${res.valor || ''}">
+                               placeholder="Valor atual: ${res.valor || ''}" value="${res.valor || ''}">
                     </div>`;
             }
         });
@@ -86,33 +90,37 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
         document.getElementById('blocoAtributos').style.display = 'block';
         document.getElementById('btnSalvar').style.display = 'block';
     } else {
-        alert("Tag não encontrada.");
+        alert("Tag '" + inputTag + "' não encontrada na base.");
     }
 });
 
-// 4. SALVAMENTO E ENVIO
+// 4. ENVIO DE DADOS
 document.getElementById('dataEntryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     if (!tagValidadaGlobal) {
-        alert("Erro: Valide a TAG antes de salvar.");
+        alert("Erro crítico: Nenhuma TAG validada.");
         return;
     }
 
+    const equipe = document.getElementById('equipe').value;
     const campos = document.querySelectorAll('.input-atributo');
     const dadosParaEnviar = [];
     
     campos.forEach(campo => {
-        dadosParaEnviar.push({
-            tag: tagValidadaGlobal, // Envia a tag validada, não a que está no input
+        const item = {
+            equipe: equipe,
+            tag: tagValidadaGlobal, // Usa a tag que foi encontrada na busca, não o input atual
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
             dataHora: new Date().toLocaleString('pt-BR')
-        });
+        };
+        respostasColetadas.push(item);
+        dadosParaEnviar.push(item);
     });
 
-    respostasColetadas.push(...dadosParaEnviar);
     localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
+    atualizarContador();
 
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
@@ -120,30 +128,32 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        alert('Dados salvos com sucesso!');
+        alert('Dados da TAG ' + tagValidadaGlobal + ' enviados com sucesso!');
         location.reload(); 
     })
     .catch(err => {
-        alert('Salvo apenas localmente.');
+        alert('Erro ao enviar. Os dados foram guardados no seu telemóvel/computador.');
         location.reload();
     });
 });
 
-// 5. EXPORTAÇÃO E CONTADOR
-document.getElementById('btnExport').addEventListener('click', function() {
-    if (respostasColetadas.length === 0) return alert("Sem dados.");
-    let csv = "\uFEFFTag;Atributo;Valor Coletado;Data Hora\n";
-    respostasColetadas.forEach(r => {
-        csv += `${r.tag};${r.atributo};${r.valorNovo};${r.dataHora}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `coleta_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-});
-
+// 5. FUNÇÕES AUXILIARES
 function atualizarContador() {
     const c = document.getElementById('contador');
     if (c) c.innerText = respostasColetadas.length;
 }
+
+document.getElementById('btnExport').addEventListener('click', function() {
+    if (respostasColetadas.length === 0) return alert("Não há dados para exportar.");
+    
+    let csv = "\uFEFFEquipe;Tag;Atributo;Valor Coletado;Data Hora\n";
+    respostasColetadas.forEach(r => {
+        csv += `${r.equipe};${r.tag};${r.atributo};${r.valorNovo};${r.dataHora}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `atualizacao_atributos_${new Date().getTime()}.csv`;
+    link.click();
+});
