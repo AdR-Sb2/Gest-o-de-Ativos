@@ -28,28 +28,25 @@ window.onload = async function() {
 
 async function carregarEquipes() {
     const selectEquipe = document.getElementById('equipe');
-    selectEquipe.disabled = true; // Desabilita enquanto carrega
-    
     try {
+        // A URL precisa receber o parâmetro action
         const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
         const lista = await response.json(); 
 
-        if (lista && lista.length > 0) {
+        if (Array.isArray(lista) && lista.length > 0) {
             selectEquipe.innerHTML = '<option value="">Selecione sua equipe...</option>';
             lista.forEach(nome => {
                 let opt = document.createElement('option');
                 opt.value = nome;
-                opt.innerHTML = nome;
+                opt.textContent = nome;
                 selectEquipe.appendChild(opt);
             });
         } else {
-            selectEquipe.innerHTML = '<option value="">Nenhuma equipe encontrada</option>';
+            selectEquipe.innerHTML = '<option value="">Nenhuma equipe encontrada na aba</option>';
         }
     } catch (error) {
-        console.error("Erro ao buscar equipes:", error);
-        selectEquipe.innerHTML = '<option value="">Erro ao carregar lista</option>';
-    } finally {
-        selectEquipe.disabled = false; // Reabilita após o processo
+        console.error("Erro ao carregar equipes:", error);
+        selectEquipe.innerHTML = '<option value="">Erro ao conectar com a planilha</option>';
     }
 }
 
