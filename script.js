@@ -6,11 +6,12 @@ let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
 let tagValidadaGlobal = ""; 
 
-// 2. CARREGAMENTO DA BASE (Tratamento de Acentos do Excel)
-// ... (mantenha suas constantes no topo)
-
+// 2. CARREGAMENTO ÚNICO DA PÁGINA
 window.onload = async function() {
-    // 1. Carrega a base de atributos (CSV)
+    // Carregar Equipes primeiro
+    await carregarEquipes();
+    
+    // Carregar Base de Tags (CSV)
     try {
         const response = await fetch(LINK_PLANILHA_ONLINE);
         const buffer = await response.arrayBuffer();
@@ -18,18 +19,17 @@ window.onload = async function() {
         const data = decoder.decode(buffer);
         processarCSV(data);
         atualizarContador();
+        console.log("Base de Tags carregada com sucesso!");
     } catch (error) {
-        console.error("Erro ao carregar base de atributos.");
+        console.error("Erro ao carregar base de atributos:", error);
+        alert("Erro ao carregar a base de dados CSV.");
     }
-
-    // 2. Carrega a lista de Equipes/Colaboradores
-    carregarEquipes();
 };
 
+// 3. FUNÇÃO PARA BUSCAR EQUIPES (Ponte Google)
 async function carregarEquipes() {
     const selectEquipe = document.getElementById('equipe');
     try {
-        // A URL precisa receber o parâmetro action
         const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
         const lista = await response.json(); 
 
@@ -41,8 +41,6 @@ async function carregarEquipes() {
                 opt.textContent = nome;
                 selectEquipe.appendChild(opt);
             });
-        } else {
-            selectEquipe.innerHTML = '<option value="">Nenhuma equipe encontrada na aba</option>';
         }
     } catch (error) {
         console.error("Erro ao carregar equipes:", error);
@@ -50,6 +48,7 @@ async function carregarEquipes() {
     }
 }
 
+// 4. PROCESSAMENTO DO CSV
 function processarCSV(csvText) {
     baseDadosAtributos = [];
     const separador = csvText.includes(';') ? ';' : ',';
@@ -70,7 +69,7 @@ function processarCSV(csvText) {
     }
 }
 
-// 3. LOGICA DE VERIFICAÇÃO E EXIBIÇÃO
+// 5. LÓGICA DE VERIFICAÇÃO DE TAG
 document.getElementById('btnVerificar').addEventListener('click', function() {
     const campoInput = document.getElementById('tag_comp');
     const inputTag = campoInput.value.trim().toUpperCase();
@@ -89,19 +88,16 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
     const resultados = baseDadosAtributos.filter(item => item.tag && item.tag.toUpperCase() === inputTag);
 
     if (resultados.length > 0) {
-        // Trava a TAG correta na memória e bloqueia o campo visual
         tagValidadaGlobal = resultados[0].tag; 
         campoInput.value = tagValidadaGlobal;
         campoInput.readOnly = true; 
         campoInput.style.backgroundColor = "#f1f5f9"; 
         
-        // Exibe informações do Ativo (Unidade, Mun, Equip)
         document.getElementById('infoAtivo').style.display = 'block';
         document.getElementById('display_un').innerText = resultados[0].un || "---";
         document.getElementById('display_mun').innerText = resultados[0].mun || "---";
         document.getElementById('display_desc').innerText = resultados[0].desc || "---";
 
-        // Gera os campos de atributos dinamicamente
         const camposContainer = document.getElementById('camposDinamicos');
         camposContainer.innerHTML = ''; 
         
@@ -123,7 +119,7 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
     }
 });
 
-// 4. ENVIO DE DADOS
+// 6. ENVIO DE DADOS (POST)
 document.getElementById('dataEntryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -139,7 +135,7 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
     campos.forEach(campo => {
         const item = {
             equipe: equipe,
-            tag: tagValidadaGlobal, // Usa a tag que foi encontrada na busca, não o input atual
+            tag: tagValidadaGlobal,
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
             dataHora: new Date().toLocaleString('pt-BR')
@@ -161,44 +157,12 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
         location.reload(); 
     })
     .catch(err => {
-        alert('Erro ao enviar. Os dados foram guardados no seu telemóvel/computador.');
+        alert('Erro ao enviar para a nuvem. Os dados foram salvos localmente.');
         location.reload();
     });
 });
 
-// 5. FUNÇÕES AUXILIARES
-function atualizarContador() {
-    const c = document.getElementById('contador');
-    if (c) c.innerText = respostasColetadas.length;
-}
-
-// Função para buscar colaboradores/equipes da aba específica
-async function carregarColaboradores() {
-    try {
-        // Faz a chamada para a sua URL do Google Apps Script
-        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
-        const colaboradores = await response.json();
-        
-        const selectEquipe = document.getElementById('equipe');
-        selectEquipe.innerHTML = '<option value="">Selecione...</option>'; // Limpa e reseta
-        
-        colaboradores.forEach(nome => {
-            const option = document.createElement('option');
-            option.value = nome;
-            option.textContent = nome;
-            selectEquipe.appendChild(option);
-        });
-    } catch (error) {
-        console.error("Erro ao carregar colaboradores:", error);
-    }
-}
-
-// Chame esta função dentro do window.onload
-window.onload = async function() {
-    // ... seu código anterior de carregar o CSV ...
-    carregarColaboradores();
-};
-
+// 7. EXPORTAÇÃO CSV LOCAL
 document.getElementById('btnExport').addEventListener('click', function() {
     if (respostasColetadas.length === 0) return alert("Não há dados para exportar.");
     
@@ -213,3 +177,8 @@ document.getElementById('btnExport').addEventListener('click', function() {
     link.download = `atualizacao_atributos_${new Date().getTime()}.csv`;
     link.click();
 });
+
+function atualizarContador() {
+    const c = document.getElementById('contador');
+    if (c) c.innerText = respostasColetadas.length;
+}
