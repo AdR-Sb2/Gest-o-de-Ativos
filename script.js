@@ -1,12 +1,13 @@
 // 1. CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
 const LINK_PLANILHA_ONLINE = 'Atributos 14.05.csv'; 
+// ATENÇÃO: Certifique-se de que esta URL é a da "Nova Versão" que você gerou no Google
 const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbzJ-hJKfhdf7zMowwzTh4QX6VoN38OCukExhpNfgY4jJNG5QO8l4-uE_12AT53_lUhaLQ/exec'; 
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
 let tagValidadaGlobal = ""; 
 
-// 2. CARREGAMENTO ÚNICO DA PÁGINA
+// 2. CARREGAMENTO DA PÁGINA
 window.onload = async function() {
     await carregarEquipes();
     
@@ -17,18 +18,16 @@ window.onload = async function() {
         const data = decoder.decode(buffer);
         processarCSV(data);
         atualizarContador();
-        console.log("Base de Tags carregada com sucesso!");
     } catch (error) {
-        console.error("Erro ao carregar base de atributos:", error);
+        console.error("Erro ao carregar base CSV:", error);
     }
 };
 
-// 3. FUNÇÃO PARA BUSCAR EQUIPES
+// 3. BUSCAR LISTA DE EQUIPES (TÉCNICOS)
 async function carregarEquipes() {
     const selectEquipe = document.getElementById('equipe');
     try {
-        // Adicionamos um timestamp para evitar que o navegador use uma resposta antiga (cache)
-        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores&t=" + new Date().getTime());
+        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
         const lista = await response.json(); 
 
         if (Array.isArray(lista) && lista.length > 0) {
@@ -42,7 +41,7 @@ async function carregarEquipes() {
         }
     } catch (error) {
         console.error("Erro ao carregar equipes:", error);
-        selectEquipe.innerHTML = '<option value="">Erro ao conectar. Tente atualizar a página.</option>';
+        selectEquipe.innerHTML = '<option value="">Erro ao carregar técnicos</option>';
     }
 }
 
@@ -67,7 +66,7 @@ function processarCSV(csvText) {
     }
 }
 
-// 5. FUNÇÃO PARA INJETAR CAMPO DE FOTO E PREVIEW
+// 5. INTERFACE DE FOTO E COMPRESSÃO
 function adicionarInterfaceAnexo() {
     if (document.getElementById('anexo')) return;
 
@@ -77,62 +76,43 @@ function adicionarInterfaceAnexo() {
     divAnexo.style.cssText = 'margin-top: 20px; padding: 15px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc;';
 
     divAnexo.innerHTML = `
-        <label style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 8px;">📸 Foto de Evidência (Opcional)</label>
-        <input type="file" id="anexo" accept="image/*" capture="environment" 
-               style="width: 100%; cursor: pointer; margin-bottom: 10px;">
-        
+        <label style="font-weight: bold; color: #1e293b;">📸 Foto de Evidência (Opcional)</label>
+        <input type="file" id="anexo" accept="image/*" capture="environment" style="margin-top: 10px; width: 100%;">
         <div id="areaPreview" style="display: none; margin-top: 15px; text-align: center;">
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Pré-visualização da captura:</p>
-            <img id="fotoPreview" src="" style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <img id="fotoPreview" src="" style="max-width: 100%; border-radius: 8px; border: 1px solid #ddd;">
         </div>
-        
-        <p style="font-size: 0.75rem; color: #64748b;">A foto será comprimida automaticamente para o envio.</p>
     `;
-    
     camposContainer.appendChild(divAnexo);
 
     document.getElementById('anexo').addEventListener('change', async function() {
         const file = this.files[0];
         if (file) {
-            try {
-                // Comprime a foto antes de exibir no preview e salvar
-                const fotoComprimida = await lerArquivo(file);
-                const imgPreview = document.getElementById('fotoPreview');
-                const divPreview = document.getElementById('areaPreview');
-                
-                imgPreview.src = fotoComprimida;
-                divPreview.style.display = 'block';
-            } catch (err) {
-                console.error("Erro ao gerar preview", err);
-            }
+            const fotoComprimida = await compressImage(file);
+            document.getElementById('fotoPreview').src = fotoComprimida;
+            document.getElementById('areaPreview').style.display = 'block';
         }
     });
 }
 
-// Auxiliar: Redimensiona e comprime a imagem (O segredo para não travar o Google)
-function lerArquivo(file) {
+function compressImage(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; // Reduz para 800px (leve e legível)
+                const MAX_WIDTH = 800; 
                 let width = img.width;
                 let height = img.height;
-
                 if (width > MAX_WIDTH) {
                     height *= MAX_WIDTH / width;
                     width = MAX_WIDTH;
                 }
-
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-
-                // Converte para JPEG com 50% de qualidade
-                resolve(canvas.toDataURL('image/jpeg', 0.5));
+                resolve(canvas.toDataURL('image/jpeg', 0.5)); 
             };
             img.src = e.target.result;
         };
@@ -140,7 +120,7 @@ function lerArquivo(file) {
     });
 }
 
-// 6. LÓGICA DE VERIFICAÇÃO DE TAG
+// 6. VERIFICAÇÃO DE TAG
 document.getElementById('btnVerificar').addEventListener('click', function() {
     const campoInput = document.getElementById('tag_comp');
     const inputTag = campoInput.value.trim().toUpperCase();
@@ -153,14 +133,13 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
 
     if (resultados.length > 0) {
         tagValidadaGlobal = resultados[0].tag; 
-        campoInput.value = tagValidadaGlobal;
         campoInput.readOnly = true; 
         campoInput.style.backgroundColor = "#f1f5f9"; 
         
         document.getElementById('infoAtivo').style.display = 'block';
-        document.getElementById('display_un').innerText = resultados[0].un || "---";
-        document.getElementById('display_mun').innerText = resultados[0].mun || "---";
-        document.getElementById('display_desc').innerText = resultados[0].desc || "---";
+        document.getElementById('display_un').innerText = resultados[0].un;
+        document.getElementById('display_mun').innerText = resultados[0].mun;
+        document.getElementById('display_desc').innerText = resultados[0].desc;
 
         const camposContainer = document.getElementById('camposDinamicos');
         camposContainer.innerHTML = ''; 
@@ -177,34 +156,31 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
         });
 
         adicionarInterfaceAnexo();
-        
         document.getElementById('blocoAtributos').style.display = 'block';
         document.getElementById('btnSalvar').style.display = 'block';
     } else {
-        alert("Tag '" + inputTag + "' não encontrada.");
+        alert("Tag não encontrada.");
     }
 });
 
-// 7. ENVIO DE DADOS
+// 7. ENVIO DE DADOS (CRÍTICO)
 document.getElementById('dataEntryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     if (!tagValidadaGlobal) return alert("Valide a TAG primeiro.");
 
-    const equipe = document.getElementById('equipe').value;
-    if (!equipe) return alert("Selecione uma equipe.");
-
     const btnSalvar = document.getElementById('btnSalvar');
     btnSalvar.disabled = true;
-    btnSalvar.innerText = "Enviando Dados... Aguarde.";
+    btnSalvar.innerText = "Enviando... Aguarde.";
 
-    // Captura foto do preview (já comprimida)
+    // Captura a foto do preview (se existir)
     let fotoBase64 = "";
     const imgPreview = document.getElementById('fotoPreview');
     if (imgPreview && imgPreview.src.startsWith("data:image")) {
         fotoBase64 = imgPreview.src;
     }
 
+    const equipe = document.getElementById('equipe').value;
     const campos = document.querySelectorAll('.input-atributo');
     const dadosParaEnviar = [];
     const dataHoraAtual = new Date().toLocaleString('pt-BR');
@@ -215,45 +191,44 @@ document.getElementById('dataEntryForm').addEventListener('submit', async functi
             tag: tagValidadaGlobal,
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
-            evidencia: fotoBase64,
+            evidencia: fotoBase64, // Base64 da foto vai aqui
             dataHora: dataHoraAtual
         });
     });
 
-    // Envio para o Google
+    // Envio para o Google Apps Script
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
-        mode: 'no-cors', // Crucial para Cross-Origin
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors', 
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        // Salva no LocalStorage como backup/histórico
+        alert('Dados enviados com sucesso!');
+        // Backup Local
         respostasColetadas.push(...dadosParaEnviar);
         localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
-        
-        alert('Dados e evidência enviados com sucesso!');
         location.reload(); 
     })
     .catch(err => {
-        console.error("Erro no envio:", err);
-        alert('Erro de conexão. Os dados foram salvos localmente no navegador.');
+        console.error("Erro:", err);
+        alert('Erro ao conectar. Verifique sua internet.');
         btnSalvar.disabled = false;
-        btnSalvar.innerText = "Tentar Reenviar";
+        btnSalvar.innerText = "Tentar novamente";
     });
 });
 
-// 8. EXPORTAÇÃO E AUXILIARES
+// 8. EXPORTAÇÃO E CONTADOR
 document.getElementById('btnExport').addEventListener('click', function() {
-    if (respostasColetadas.length === 0) return alert("Sem dados para exportar.");
-    let csv = "\uFEFFEquipe;Tag;Atributo;Valor Coletado;Data Hora\n";
+    if (respostasColetadas.length === 0) return alert("Sem dados.");
+    let csv = "\uFEFFEquipe;Tag;Atributo;Valor;Data\n";
     respostasColetadas.forEach(r => {
         csv += `${r.equipe};${r.tag};${r.atributo};${r.valorNovo};${r.dataHora}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `relatorio_manutencao_${new Date().getTime()}.csv`;
+    link.download = `relatorio_${new Date().getTime()}.csv`;
     link.click();
 });
 
