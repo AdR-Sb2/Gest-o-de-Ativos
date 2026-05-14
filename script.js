@@ -66,40 +66,40 @@ function processarCSV(csvText) {
     }
 }
 
-// 5. FUNÇÃO PARA INJETAR CAMPO DE FOTO E PREVIEW (100% via JS)
+// 5. FUNÇÃO PARA INJETAR CAMPO DE FOTO E PREVIEW
 function adicionarInterfaceAnexo() {
     if (document.getElementById('anexo')) return;
 
     const camposContainer = document.getElementById('camposDinamicos');
     const divAnexo = document.createElement('div');
     divAnexo.className = 'form-group';
-    divAnexo.style.cssText = 'margin-top: 20px; padding: 15px; border: 2px dashed #cbd5e1; border-radius: 12px; backgroundColor: #f8fafc;';
+    divAnexo.style.cssText = 'margin-top: 20px; padding: 15px; border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc;';
 
     divAnexo.innerHTML = `
-        <label style="font-weight: bold; color: #1e293b;">📸 Foto de Evidência (Opcional)</label>
+        <label style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 8px;">📸 Foto de Evidência (Opcional)</label>
         <input type="file" id="anexo" accept="image/*" capture="environment" 
-               style="margin-top: 10px; width: 100%; cursor: pointer;">
+               style="width: 100%; cursor: pointer; margin-bottom: 10px;">
         
         <div id="areaPreview" style="display: none; margin-top: 15px; text-align: center;">
             <p style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Pré-visualização da captura:</p>
-            <img id="fotoPreview" src="" style="max-width: 100%; border-radius: 8px; border: 1px solid #ddd;">
+            <img id="fotoPreview" src="" style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </div>
         
-        <p style="font-size: 0.75rem; color: #64748b; margin-top: 5px;">Tire uma foto da placa ou do equipamento.</p>
+        <p style="font-size: 0.75rem; color: #64748b;">A foto será comprimida automaticamente para o envio.</p>
     `;
     
     camposContainer.appendChild(divAnexo);
 
-    // Lógica para mostrar o preview assim que o usuário selecionar o arquivo
     document.getElementById('anexo').addEventListener('change', async function() {
         const file = this.files[0];
         if (file) {
             try {
-                const fotoBase64 = await lerArquivo(file);
+                // Comprime a foto antes de exibir no preview e salvar
+                const fotoComprimida = await lerArquivo(file);
                 const imgPreview = document.getElementById('fotoPreview');
                 const divPreview = document.getElementById('areaPreview');
                 
-                imgPreview.src = fotoBase64;
+                imgPreview.src = fotoComprimida;
                 divPreview.style.display = 'block';
             } catch (err) {
                 console.error("Erro ao gerar preview", err);
@@ -108,7 +108,7 @@ function adicionarInterfaceAnexo() {
     });
 }
 
-// Auxiliar para converter imagem em texto
+// Auxiliar: Redimensiona e comprime a imagem (O segredo para não travar o Google)
 function lerArquivo(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -116,11 +116,10 @@ function lerArquivo(file) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; // Reduz para 800px (leve e legível)
                 let width = img.width;
                 let height = img.height;
 
-                // Redimensiona proporcionalmente para no máximo 1280px
-                const MAX_WIDTH = 1280;
                 if (width > MAX_WIDTH) {
                     height *= MAX_WIDTH / width;
                     width = MAX_WIDTH;
@@ -131,8 +130,8 @@ function lerArquivo(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Converte para Base64 com qualidade 0.7 (70%)
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
+                // Converte para JPEG com 50% de qualidade
+                resolve(canvas.toDataURL('image/jpeg', 0.5));
             };
             img.src = e.target.result;
         };
@@ -176,7 +175,6 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
             }
         });
 
-        // INJETA O CAMPO DE FOTO
         adicionarInterfaceAnexo();
         
         document.getElementById('blocoAtributos').style.display = 'block';
@@ -186,79 +184,67 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
     }
 });
 
-// 7. ENVIO DE DADOS (Incluso Foto e Verificação)
+// 7. ENVIO DE DADOS
 document.getElementById('dataEntryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    // 1. Verificações de segurança
-    if (!tagValidadaGlobal) {
-        alert("Valide a TAG primeiro clicando no botão 'Verificar Tag'.");
-        return;
-    }
+    if (!tagValidadaGlobal) return alert("Valide a TAG primeiro.");
 
     const equipe = document.getElementById('equipe').value;
-    if (!equipe) {
-        alert("Por favor, selecione uma equipe.");
-        return;
-    }
+    if (!equipe) return alert("Selecione uma equipe.");
 
-    // 2. Captura da foto (se existir)
-    const fileInput = document.getElementById('anexo');
+    const btnSalvar = document.getElementById('btnSalvar');
+    btnSalvar.disabled = true;
+    btnSalvar.innerText = "Enviando Dados... Aguarde.";
+
+    // Captura foto do preview (já comprimida)
     let fotoBase64 = "";
-
-    // Pegamos o preview da imagem caso ela já tenha sido carregada pelo evento 'change'
     const imgPreview = document.getElementById('fotoPreview');
-    if (imgPreview && imgPreview.src.includes("base64")) {
+    if (imgPreview && imgPreview.src.startsWith("data:image")) {
         fotoBase64 = imgPreview.src;
     }
 
-    // 3. Montagem dos dados
     const campos = document.querySelectorAll('.input-atributo');
     const dadosParaEnviar = [];
     const dataHoraAtual = new Date().toLocaleString('pt-BR');
 
     campos.forEach(campo => {
-        const item = {
+        dadosParaEnviar.push({
             equipe: equipe,
             tag: tagValidadaGlobal,
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
-            evidencia: fotoBase64, // Aqui vai o link que o Google Script vai converter
+            evidencia: fotoBase64,
             dataHora: dataHoraAtual
-        };
-        respostasColetadas.push(item);
-        dadosParaEnviar.push(item);
+        });
     });
 
-    // 4. Salvamento Local e Envio
-    localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
-    atualizarContador();
-
-    // Feedback visual para o usuário saber que está enviando
-    const btnSalvar = document.getElementById('btnSalvar');
-    const textoOriginal = btnSalvar.innerText;
-    btnSalvar.disabled = true;
-    btnSalvar.innerText = "Enviando... Aguarde.";
-
+    // Envio para o Google
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
-        mode: 'no-cors',
+        mode: 'no-cors', // Crucial para Cross-Origin
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
+        // Salva no LocalStorage como backup/histórico
+        respostasColetadas.push(...dadosParaEnviar);
+        localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
+        
         alert('Dados e evidência enviados com sucesso!');
         location.reload(); 
     })
     .catch(err => {
         console.error("Erro no envio:", err);
-        alert('Erro ao enviar para a nuvem. Os dados foram salvos apenas no seu celular/computador por enquanto.');
-        location.reload();
+        alert('Erro de conexão. Os dados foram salvos localmente no navegador.');
+        btnSalvar.disabled = false;
+        btnSalvar.innerText = "Tentar Reenviar";
     });
 });
 
 // 8. EXPORTAÇÃO E AUXILIARES
 document.getElementById('btnExport').addEventListener('click', function() {
-    if (respostasColetadas.length === 0) return alert("Sem dados.");
+    if (respostasColetadas.length === 0) return alert("Sem dados para exportar.");
     let csv = "\uFEFFEquipe;Tag;Atributo;Valor Coletado;Data Hora\n";
     respostasColetadas.forEach(r => {
         csv += `${r.equipe};${r.tag};${r.atributo};${r.valorNovo};${r.dataHora}\n`;
@@ -266,7 +252,7 @@ document.getElementById('btnExport').addEventListener('click', function() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `dados_coletados_${new Date().getTime()}.csv`;
+    link.download = `relatorio_manutencao_${new Date().getTime()}.csv`;
     link.click();
 });
 
