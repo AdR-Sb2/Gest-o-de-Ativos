@@ -1,6 +1,6 @@
 // 1. CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
 const LINK_PLANILHA_ONLINE = 'Atributos 13.05.csv'; 
-const URL_PONTE_GOOGLE = 'hhttps://script.google.com/macros/s/AKfycbzJ-hJKfhdf7zMowwzTh4QX6VoN38OCukExhpNfgY4jJNG5QO8l4-uE_12AT53_lUhaLQ/exec'; 
+const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbzJ-hJKfhdf7zMowwzTh4QX6VoN38OCukExhpNfgY4jJNG5QO8l4-uE_12AT53_lUhaLQ/exec'; 
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
