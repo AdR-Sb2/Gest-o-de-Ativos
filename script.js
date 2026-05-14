@@ -7,19 +7,49 @@ let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || 
 let tagValidadaGlobal = ""; 
 
 // 2. CARREGAMENTO DA BASE (Tratamento de Acentos do Excel)
+// ... (mantenha suas constantes no topo)
+
 window.onload = async function() {
+    // 1. Carrega a base de atributos (CSV)
     try {
         const response = await fetch(LINK_PLANILHA_ONLINE);
         const buffer = await response.arrayBuffer();
-        // Decode para windows-1252 para suportar acentos vindos do Excel
         const decoder = new TextDecoder('windows-1252');
         const data = decoder.decode(buffer);
         processarCSV(data);
         atualizarContador();
     } catch (error) {
-        console.error("Erro ao carregar a base de dados. Verifique o nome do arquivo no GitHub.");
+        console.error("Erro ao carregar base de atributos.");
     }
+
+    // 2. Carrega a lista de Equipes/Colaboradores
+    carregarEquipes();
 };
+
+async function carregarEquipes() {
+    const selectEquipe = document.getElementById('equipe');
+    
+    try {
+        // Faz uma chamada ao Google Script pedindo a lista de colaboradores
+        const response = await fetch(URL_PONTE_GOOGLE + "?action=getColaboradores");
+        const lista = await response.json(); 
+
+        if (lista && lista.length > 0) {
+            selectEquipe.innerHTML = '<option value="">Selecione sua equipe...</option>';
+            lista.forEach(nome => {
+                let opt = document.createElement('option');
+                opt.value = nome;
+                opt.innerHTML = nome;
+                selectEquipe.appendChild(opt);
+            });
+        } else {
+            selectEquipe.innerHTML = '<option value="">Nenhuma equipe encontrada</option>';
+        }
+    } catch (error) {
+        console.error("Erro ao buscar equipes:", error);
+        selectEquipe.innerHTML = '<option value="">Erro ao carregar lista</option>';
+    }
+}
 
 function processarCSV(csvText) {
     baseDadosAtributos = [];
