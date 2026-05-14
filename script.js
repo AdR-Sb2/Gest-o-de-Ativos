@@ -4,7 +4,7 @@ const URL_PONTE_GOOGLE = 'https://script.google.com/macros/s/AKfycbx92T_406GeyO8
 
 let baseDadosAtributos = [];
 let respostasColetadas = JSON.parse(localStorage.getItem('respostasAtivos')) || [];
-let tagValidada = ""; // Armazena a tag confirmada após a busca
+let tagValidadaGlobal = ""; // Variável absoluta para armazenar a tag encontrada
 
 // 2. CARREGAMENTO DA BASE
 window.onload = async function() {
@@ -25,46 +25,45 @@ function processarCSV(csvText) {
     
     for (let i = 1; i < linhas.length; i++) {
         const colunas = linhas[i].split(separador).map(c => c.replace(/"/g, "").trim());
-        
         if (colunas.length >= 5) {
             baseDadosAtributos.push({
-                un: colunas[0],   // Unidade
-                mun: colunas[1],  // Município
-                tag: colunas[4],  // Coluna E (Tag Comp)
-                desc: colunas[5], // Descrição/Equipamento
+                un: colunas[0],
+                mun: colunas[1],
+                tag: colunas[4], // Tag Comp
+                desc: colunas[5],
                 atrib: colunas[6],
                 valor: colunas[7]
             });
         }
     }
-    console.log("Base carregada. Total: " + baseDadosAtributos.length);
 }
 
 // 3. VERIFICAÇÃO DE TAG
 document.getElementById('btnVerificar').addEventListener('click', function() {
-    const inputTag = document.getElementById('tag_comp').value.trim().toUpperCase();
+    const campoInput = document.getElementById('tag_comp');
+    const inputTag = campoInput.value.trim().toUpperCase();
     
     if (!inputTag) {
         alert("Por favor, digite uma TAG.");
         return;
     }
 
-    // Busca na base carregada
     const resultados = baseDadosAtributos.filter(item => {
         return item.tag && item.tag.toUpperCase() === inputTag;
     });
 
     if (resultados.length > 0) {
-        // Trava a TAG correta para o envio posterior
-        tagValidada = resultados[0].tag; 
-
-        // Exibe informações detalhadas do ativo
+        // --- AQUI ESTÁ A CHAVE DA SOLUÇÃO ---
+        tagValidadaGlobal = resultados[0].tag; // Salva a tag oficial da planilha
+        campoInput.value = tagValidadaGlobal;   // Força o texto do campo a ser a tag oficial
+        campoInput.readOnly = true;            // Bloqueia o campo para não permitirem edição manual
+        campoInput.style.backgroundColor = "#e2e8f0"; // Cor de campo desabilitado
+        
         document.getElementById('infoAtivo').style.display = 'block';
         document.getElementById('display_un').innerText = resultados[0].un || "---";
         document.getElementById('display_mun').innerText = resultados[0].mun || "---";
         document.getElementById('display_desc').innerText = resultados[0].desc || "---";
 
-        // Gera os campos de atributos dinamicamente
         const campos = document.getElementById('camposDinamicos');
         campos.innerHTML = ''; 
         
@@ -74,22 +73,15 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
                     <div class="form-group">
                         <label>${res.atrib}</label>
                         <input type="text" class="input-atributo" data-atributo="${res.atrib}" 
-                               placeholder="Valor atual: ${res.valor || ''}" value="${res.valor || ''}">
+                               placeholder="Valor: ${res.valor || ''}" value="${res.valor || ''}">
                     </div>`;
             }
         });
         
         document.getElementById('blocoAtributos').style.display = 'block';
         document.getElementById('btnSalvar').style.display = 'block';
-        
-        // Feedback visual de sucesso
-        console.log("Ativo selecionado: " + tagValidada);
     } else {
-        tagValidada = ""; 
-        document.getElementById('infoAtivo').style.display = 'none';
-        document.getElementById('blocoAtributos').style.display = 'none';
-        document.getElementById('btnSalvar').style.display = 'none';
-        alert("Tag '" + inputTag + "' não encontrada.");
+        alert("Tag não encontrada.");
     }
 });
 
@@ -97,9 +89,9 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
 document.getElementById('dataEntryForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Validação extra: garante que a tag enviada é a que foi pesquisada
-    if (!tagValidada) {
-        alert("Erro: Você precisa verificar uma TAG válida antes de salvar.");
+    // Garantia extra: Se por algum motivo a tag global estiver vazia, não prossegue
+    if (!tagValidadaGlobal) {
+        alert("Erro: Valide a TAG antes de salvar.");
         return;
     }
 
@@ -107,48 +99,44 @@ document.getElementById('dataEntryForm').addEventListener('submit', function(e) 
     const dadosParaEnviar = [];
     
     campos.forEach(campo => {
-        const item = {
-            tag: tagValidada, // Usa a tag confirmada na busca
+        dadosParaEnviar.push({
+            tag: tagValidadaGlobal, // <--- USA SEMPRE A TAG QUE FOI VALIDADA
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
             dataHora: new Date().toLocaleString('pt-BR')
-        };
-        respostasColetadas.push(item);
-        dadosParaEnviar.push(item);
+        });
     });
 
+    // Salva no histórico local
+    respostasColetadas.push(...dadosParaEnviar);
     localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
-    atualizarContador();
 
-    // Envio para o Google Apps Script
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
         mode: 'no-cors',
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        alert('Dados salvos com sucesso para a TAG: ' + tagValidada);
-        location.reload();
+        alert('Dados salvos com sucesso!');
+        location.reload(); // Recarrega para limpar os campos e o readOnly
     })
     .catch(err => {
-        alert('Erro na rede. Salvo localmente no navegador.');
+        alert('Salvo apenas localmente (sem sinal).');
         location.reload();
     });
 });
 
 // 5. EXPORTAÇÃO E CONTADOR
 document.getElementById('btnExport').addEventListener('click', function() {
-    if (respostasColetadas.length === 0) return alert("Sem dados para exportar.");
-    
+    if (respostasColetadas.length === 0) return alert("Sem dados.");
     let csv = "\uFEFFTag;Atributo;Valor Coletado;Data Hora\n";
     respostasColetadas.forEach(r => {
         csv += `${r.tag};${r.atributo};${r.valorNovo};${r.dataHora}\n`;
     });
-    
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `coleta_atributos_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `coleta_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
 });
 
