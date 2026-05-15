@@ -185,24 +185,22 @@ document.getElementById('btnVerificar').addEventListener('click', function() {
     }
 });
 
-// 7. ENVIO DE DADOS
+// 7. ENVIO DE DADOS (Versão Base64 Direto)
 document.getElementById('dataEntryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     if (!tagValidadaGlobal) return alert("Valide a TAG primeiro.");
-
     const equipe = document.getElementById('equipe').value;
     if (!equipe) return alert("Selecione uma equipe.");
 
     const btnSalvar = document.getElementById('btnSalvar');
     btnSalvar.disabled = true;
-    btnSalvar.innerText = "Enviando Dados... Aguarde.";
+    btnSalvar.innerText = "Enviando... Aguarde.";
 
-    // Captura foto do preview (já comprimida)
     let fotoBase64 = "";
     const imgPreview = document.getElementById('fotoPreview');
     if (imgPreview && imgPreview.src.startsWith("data:image")) {
-        fotoBase64 = imgPreview.src;
+        fotoBase64 = imgPreview.src; 
     }
 
     const campos = document.querySelectorAll('.input-atributo');
@@ -215,34 +213,30 @@ document.getElementById('dataEntryForm').addEventListener('submit', async functi
             tag: tagValidadaGlobal,
             atributo: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
-            evidencia: fotoBase64,
+            evidencia: fotoBase64, // Envia o texto da imagem
             dataHora: dataHoraAtual
         });
     });
 
-    // Envio para o Google
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
-        mode: 'no-cors', // Crucial para Cross-Origin
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors', 
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        // Salva no LocalStorage como backup/histórico
         respostasColetadas.push(...dadosParaEnviar);
         localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
-        
-        alert('Dados e evidência enviados com sucesso!');
+        alert('Dados salvos com sucesso!');
         location.reload(); 
     })
     .catch(err => {
-        console.error("Erro no envio:", err);
-        alert('Erro de conexão. Os dados foram salvos localmente no navegador.');
+        console.error("Erro:", err);
+        alert('Erro de conexão. Salvo localmente.');
         btnSalvar.disabled = false;
         btnSalvar.innerText = "Tentar Reenviar";
     });
 });
-
 // 8. EXPORTAÇÃO E AUXILIARES
 document.getElementById('btnExport').addEventListener('click', function() {
     if (respostasColetadas.length === 0) return alert("Sem dados para exportar.");
