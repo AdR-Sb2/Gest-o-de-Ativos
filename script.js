@@ -117,7 +117,7 @@ function lerArquivo(file) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; // Reduz para 800px (leve e legível)
+                const MAX_WIDTH = 600; // Reduz para 600px (leve e legível)
                 let width = img.width;
                 let height = img.height;
 
@@ -132,7 +132,7 @@ function lerArquivo(file) {
                 ctx.drawImage(img, 0, 0, width, height);
 
                 // Converte para JPEG com 50% de qualidade
-                resolve(canvas.toDataURL('image/jpeg', 0.5));
+                resolve(canvas.toDataURL('image/jpeg', 0.4));
             };
             img.src = e.target.result;
         };
