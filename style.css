@@ -1,28 +1,84 @@
-/* Adicione ao final do seu style.css */
-.btn-back {
-    background: transparent;
-    color: var(--primary);
-    text-align: left;
-    padding: 0;
-    font-size: 14px;
-    margin-bottom: 10px;
-    width: auto;
-    text-decoration: underline;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --bg: #0f172a;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --accent: #0ea5e9;
 }
 
-#menuPrincipal .actions {
-    margin-top: 20px;
+body {
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
 }
 
-#menuPrincipal button {
-    margin-bottom: 15px;
-    padding: 20px; /* Mais destaque no menu */
-}
-
-input[type="file"] {
+.container {
     width: 100%;
-    padding: 10px;
-    background: white;
-    border-radius: 12px;
-    border: 2px dashed var(--border);
+    max-width: 400px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+header h1 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+header p {
+    color: #94a3b8;
+}
+
+.menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.card {
+    background: var(--card-bg);
+    border: none;
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.card:active {
+    transform: scale(0.96);
+    background: #f8fafc;
+}
+
+.card .icon {
+    font-size: 35px;
+}
+
+.card .info {
+    display: flex;
+    flex-direction: column;
+}
+
+.card strong {
+    font-size: 18px;
+    color: var(--text);
+}
+
+.card span {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
 }

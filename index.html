@@ -3,96 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saneamento - Gestão de Ativos</title>
+    <title>Portal de Manutenção - Saneamento</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <div id="menuPrincipal">
-            <header>
-                <h1>Gestão de Ativos</h1>
-                <p>O que deseja realizar hoje?</p>
-            </header>
-            <div class="actions">
-                <button type="button" class="btn-check" onclick="abrirForm('atualizacao')">Atualizar Atributos</button>
-                <button type="button" class="btn-check" onclick="abrirForm('movimentacao')">Movimentar Equipamento</button>
-            </div>
-        </div>
+        <header>
+            <h1>Gestão de Ativos</h1>
+            <p>Selecione a operação</p>
+        </header>
 
-        <div id="formAtualizacao" style="display:none;">
-            <header>
-                <button class="btn-back" onclick="voltarMenu()">← Voltar</button>
-                <h1>Atualização de Ativos</h1>
-            </header>
-
-            <form id="dataEntryForm">
-                <div class="section-block">
-                    <h2>Identificação</h2>
-                    <div class="form-group">
-                        <label>Equipe Responsável *</label>
-                        <select class="select-equipe" required>
-                            <option value="">Carregando...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tag do Componente *</label>
-                        <input type="text" id="tag_comp" placeholder="Ex: RJB-P-151314">
-                        <button type="button" id="btnVerificar" class="btn-check" style="margin-top: 10px;">Verificar Tag</button>
-                    </div>
-                    <div id="infoAtivo" style="display:none;"></div>
+        <nav class="menu-grid">
+            <button class="card" onclick="location.href='ATRIBUTOS/index.html'">
+                <div class="icon">⚙️</div>
+                <div class="info">
+                    <strong>Atualizar Atributos</strong>
+                    <span>Ficha técnica e status</span>
                 </div>
+            </button>
 
-                <div id="blocoAtributos" class="section-block" style="display:none;">
-                    <h2>Atributos</h2>
-                    <div id="camposDinamicos"></div>
+            <button class="card" onclick="location.href='MOVIMENTACAO/index.html'">
+                <div class="icon">🚛</div>
+                <div class="info">
+                    <strong>Movimentação</strong>
+                    <span>Transferência de equipamentos</span>
                 </div>
-
-                <div class="actions">
-                    <button type="submit" class="btn-submit" id="btnSalvar">Salvar Alterações</button>
-                </div>
-            </form>
-        </div>
-
-        <div id="formMovimentacao" style="display:none;">
-            <header>
-                <button class="btn-back" onclick="voltarMenu()">← Voltar</button>
-                <h1>Movimentação</h1>
-            </header>
-
-            <form id="movimentacaoForm">
-                <div class="section-block">
-                    <h2>Dados da Carga</h2>
-                    <div class="form-group">
-                        <label>Equipe Responsável *</label>
-                        <select class="select-equipe" required>
-                            <option value="">Carregando...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Equipamento *</label>
-                        <input type="text" id="mov_equip" placeholder="Ex: Bomba KSB 50cv" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Origem *</label>
-                        <input type="text" id="mov_origem" placeholder="Ex: EEAT Guandu" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Destino *</label>
-                        <input type="text" id="mov_destino" placeholder="Ex: Oficina Central" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Foto da Guia/Equipamento</label>
-                        <input type="file" id="mov_foto" accept="image/*" capture="camera">
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button type="submit" class="btn-submit">Registrar Movimentação</button>
-                </div>
-            </form>
-        </div>
+            </button>
+        </nav>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>
