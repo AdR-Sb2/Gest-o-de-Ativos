@@ -1,84 +1,120 @@
+/* --- Google Fonts --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 :root {
-    --bg: #0f172a;
-    --card-bg: #ffffff;
-    --text: #1e293b;
-    --accent: #0ea5e9;
+    --primary: #0ea5e9;
+    --primary-hover: #0284c7;
+    --bg-body: #0f172a; /* Fundo azul escuro profundo */
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
 }
 
 body {
-    background-color: var(--bg);
+    background-color: var(--bg-body);
     font-family: 'Inter', sans-serif;
-    margin: 0;
+    color: var(--text-main);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* Centraliza o menu no meio da tela */
     min-height: 100vh;
     padding: 20px;
 }
 
 .container {
     width: 100%;
-    max-width: 400px;
+    max-width: 400px; /* Um pouco mais estreito para parecer um app */
+    text-align: center;
 }
 
+/* --- Header do Menu --- */
 header {
-    text-align: center;
     margin-bottom: 40px;
 }
 
 header h1 {
-    color: white;
     font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
     margin-bottom: 8px;
 }
 
 header p {
-    color: #94a3b8;
+    font-size: 16px;
+    color: var(--text-muted);
 }
 
+/* --- Grid de Botões (Menu) --- */
 .menu-grid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
+/* --- Estilo dos Cards de Navegação --- */
 .card {
-    background: var(--card-bg);
+    background: var(--bg-card);
     border: none;
-    border-radius: 20px;
-    padding: 25px;
+    border-radius: 24px;
+    padding: 28px 24px;
     display: flex;
     align-items: center;
     gap: 20px;
     cursor: pointer;
     text-align: left;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
 }
 
 .card:active {
     transform: scale(0.96);
-    background: #f8fafc;
 }
 
+/* Ícones dentro dos cards */
 .card .icon {
-    font-size: 35px;
+    font-size: 36px;
+    background: #f1f5f9;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
 }
 
+/* Texto dentro dos cards */
 .card .info {
     display: flex;
     flex-direction: column;
 }
 
-.card strong {
+.card .info strong {
     font-size: 18px;
-    color: var(--text);
+    color: var(--text-main);
+    font-weight: 700;
 }
 
-.card span {
-    font-size: 13px;
-    color: #64748b;
+.card .info span {
+    font-size: 14px;
+    color: var(--text-muted);
     margin-top: 4px;
+    line-height: 1.2;
+}
+
+/* Destaque para o ícone de Movimentação (Opcional) */
+.card:nth-child(2) .icon {
+    color: var(--primary);
 }
