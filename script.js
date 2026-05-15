@@ -191,12 +191,12 @@ document.getElementById('dataEntryForm').addEventListener('submit', async functi
     
     if (!tagValidadaGlobal) return alert("Valide a TAG primeiro.");
     const equipe = document.getElementById('equipe').value;
-    if (!equipe) return alert("Selecione uma equipe.");
 
     const btnSalvar = document.getElementById('btnSalvar');
     btnSalvar.disabled = true;
     btnSalvar.innerText = "Enviando... Aguarde.";
 
+    // Captura a foto do preview
     let fotoBase64 = "";
     const imgPreview = document.getElementById('fotoPreview');
     if (imgPreview && imgPreview.src.startsWith("data:image")) {
@@ -211,28 +211,28 @@ document.getElementById('dataEntryForm').addEventListener('submit', async functi
         dadosParaEnviar.push({
             equipe: equipe,
             tag: tagValidadaGlobal,
-            atributo: campo.getAttribute('data-atributo'),
+            atrib: campo.getAttribute('data-atributo'),
             valorNovo: campo.value,
-            evidencia: fotoBase64, // Envia o texto da imagem
+            evidencia: fotoBase64, // Texto da imagem comprimida
             dataHora: dataHoraAtual
         });
     });
 
+    // Envio configurado para evitar erro de CORS/Conexão
     fetch(URL_PONTE_GOOGLE, {
         method: 'POST',
-        mode: 'no-cors', 
+        mode: 'no-cors', // Fundamental para não dar erro de conexão
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(dadosParaEnviar)
     })
     .then(() => {
-        respostasColetadas.push(...dadosParaEnviar);
-        localStorage.setItem('respostasAtivos', JSON.stringify(respostasColetadas));
-        alert('Dados salvos com sucesso!');
+        alert('Dados salvos na planilha com sucesso!');
+        localStorage.removeItem('respostasAtivos'); 
         location.reload(); 
     })
     .catch(err => {
-        console.error("Erro:", err);
-        alert('Erro de conexão. Salvo localmente.');
+        console.error("Erro no fetch:", err);
+        alert('Erro ao enviar. Tente novamente.');
         btnSalvar.disabled = false;
         btnSalvar.innerText = "Tentar Reenviar";
     });
