@@ -3,53 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atualização de Atributos - Campo</title>
+    <title>Saneamento - Gestão de Ativos</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Atualização de Ativos</h1>
-            <p>Insira a TAG para validar e preencher os atributos.</p>
-        </header>
-
-        <form id="dataEntryForm">
-            <div class="section-block">
-                <h2>Identificação</h2>
-                <div class="form-group">
-                    <label for="equipe">Equipe Responsável *</label>
-                    <select id="equipe" required>
-                        <option value="">Carregando equipes...</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="section-block">
-                <h2>1. Identificação do Ativo</h2>
-                <div class="form-group">
-                    <label for="tag_comp">Tag do Componente (Tag Comp) *</label>
-                    <input type="text" id="tag_comp" placeholder="Ex: RJB-P-151314" required>
-                    <button type="button" id="btnVerificar" class="btn-check" style="margin-top: 10px;">Verificar Tag</button>
-                </div>
-                
-                <div id="infoAtivo" style="display:none;">
-                    <p><strong>Unidade:</strong> <span id="display_un"></span></p>
-                    <p><strong>Município:</strong> <span id="display_mun"></span></p>
-                    <p><strong>Equipamento:</strong> <span id="display_desc"></span></p>
-                </div>
-            </div>
-
-            <div id="blocoAtributos" class="section-block" style="display:none;">
-                <h2>2. Atributos para Atualizar</h2>
-                <div id="camposDinamicos">
-                    </div>
-            </div>
-
+        <div id="menuPrincipal">
+            <header>
+                <h1>Gestão de Ativos</h1>
+                <p>O que deseja realizar hoje?</p>
+            </header>
             <div class="actions">
-                <button type="submit" id="btnSalvar" class="btn-submit" style="display:none;">Salvar Alterações</button>
-                <button type="button" id="btnExport" class="btn-export">Baixar Relatório (CSV)</button>
+                <button type="button" class="btn-check" onclick="abrirForm('atualizacao')">Atualizar Atributos</button>
+                <button type="button" class="btn-check" onclick="abrirForm('movimentacao')">Movimentar Equipamento</button>
             </div>
-        </form>
+        </div>
+
+        <div id="formAtualizacao" style="display:none;">
+            <header>
+                <button class="btn-back" onclick="voltarMenu()">← Voltar</button>
+                <h1>Atualização de Ativos</h1>
+            </header>
+
+            <form id="dataEntryForm">
+                <div class="section-block">
+                    <h2>Identificação</h2>
+                    <div class="form-group">
+                        <label>Equipe Responsável *</label>
+                        <select class="select-equipe" required>
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tag do Componente *</label>
+                        <input type="text" id="tag_comp" placeholder="Ex: RJB-P-151314">
+                        <button type="button" id="btnVerificar" class="btn-check" style="margin-top: 10px;">Verificar Tag</button>
+                    </div>
+                    <div id="infoAtivo" style="display:none;"></div>
+                </div>
+
+                <div id="blocoAtributos" class="section-block" style="display:none;">
+                    <h2>Atributos</h2>
+                    <div id="camposDinamicos"></div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn-submit" id="btnSalvar">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="formMovimentacao" style="display:none;">
+            <header>
+                <button class="btn-back" onclick="voltarMenu()">← Voltar</button>
+                <h1>Movimentação</h1>
+            </header>
+
+            <form id="movimentacaoForm">
+                <div class="section-block">
+                    <h2>Dados da Carga</h2>
+                    <div class="form-group">
+                        <label>Equipe Responsável *</label>
+                        <select class="select-equipe" required>
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Equipamento *</label>
+                        <input type="text" id="mov_equip" placeholder="Ex: Bomba KSB 50cv" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Origem *</label>
+                        <input type="text" id="mov_origem" placeholder="Ex: EEAT Guandu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Destino *</label>
+                        <input type="text" id="mov_destino" placeholder="Ex: Oficina Central" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Foto da Guia/Equipamento</label>
+                        <input type="file" id="mov_foto" accept="image/*" capture="camera">
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn-submit">Registrar Movimentação</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="script.js"></script>
