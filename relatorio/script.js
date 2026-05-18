@@ -107,7 +107,7 @@ function renderizarCamposMotores() {
                 </div>
             </div>
             <div class="form-group" style="margin-top: 10px;">
-                <label style="color: #b45309; font-weight: bold;">Corrente Elétrica em Shutoff</label>
+                <label>Corrente Elétrica em Shutoff</label>
                 <input type="text" id="correnteShutoff_G${i}" placeholder="Ex: 180A (Válvula Fechada)">
             </div>
         `;
