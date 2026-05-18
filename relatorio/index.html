@@ -29,21 +29,24 @@
                     <p><strong>Planta/Infra:</strong> <span id="lblPlanta">---</span></p>
                     <p><strong>Município:</strong> <span id="lblMunicipio">---</span></p>
                 </div>
-
-                <div class="form-group" style="margin-top: 15px;">
-                    <label for="qtdGrupos">Quantidade de Grupos Motor-Bomba (Manuais e Editáveis)</label>
-                    <select id="qtdGrupos" style="font-weight: bold; border-color: var(--primary);">
-                        <option value="1">1 Grupo (G1)</option>
-                        <option value="2">2 Grupos (G1 e G2)</option>
-                        <option value="3">3 Grupos (G1, G2 e G3)</option>
-                        <option value="4">4 Grupos (G1, G2, G3 e G4)</option>
-                    </select>
-                </div>
             </div>
 
             <div id="restoDoFormulario" style="display: none;">
                 
-                <div id="containerMotores"></div>
+                <div class="section-block">
+                    <h2>2. Grupos Motor-Bomba</h2>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="qtdGrupos">Quantidade de Grupos Motor-Bomba (Manuais e Editáveis)</label>
+                        <select id="qtdGrupos" style="font-weight: bold; border-color: var(--primary);">
+                            <option value="1">1 Grupo (G1)</option>
+                            <option value="2">2 Grupos (G1 e G2)</option>
+                            <option value="3">3 Grupos (G1, G2 e G3)</option>
+                            <option value="4">4 Grupos (G1, G2, G3 e G4)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="containerMotores"></div>
+                </div>
 
                 <div class="section-block">
                     <h2>3. Parâmetros Hidráulicos (Operação)</h2>
@@ -72,6 +75,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="section-block">
+                    <h2>5. Registro Fotográfico</h2>
+                    <div class="form-group">
+                        <label for="fotoInput" class="btn-check" style="display: inline-block; text-align: center; cursor: pointer; padding: 12px; background-color: #4b5563; color: white; border-radius: 6px; font-weight: bold; width: 100%; box-sizing: border-box;">
+                            Selecionar Fotos do Serviço 📸
+                        </label>
+                        <input type="file" id="fotoInput" accept="image/*" multiple style="display: none;">
+                        <small style="display: block; margin-top: 5px; color: #6b7280;">As mídias vão gerar previews abaixo e serão contabilizadas no texto.</small>
+                    </div>
+                    <div id="previewFotos" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;"></div>
+                </div>
+
                 <div class="section-block">
                     <h2>6. Execução do Serviço</h2>
                     
