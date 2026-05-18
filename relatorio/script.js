@@ -5,7 +5,7 @@ let baseDadosLocal = [];
 // Carrega o CSV assim que a página abre
 window.onload = async function() {
     try {
-        const response = await fetch(LINK_PLANILHA_ONLINE);
+        const response = await fetch(https://docs.google.com/spreadsheets/d/1ML8LBnplrQ2zJTP2NmrZUZLLlYonJECxK5LYCqETDRk/edit?gid=0#gid=0);
         const buffer = await response.arrayBuffer();
         const decoder = new TextDecoder('windows-1252');
         const data = decoder.decode(buffer);
