@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Relatório Técnico - Eletromecânica</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Criar Relatório de Serviço</h1>
+            <p>Insira a TAG, Nota ou Ordem para validar e gerar o relatório padronizado.</p>
+        </header>
+
+        <form id="relatorioForm">
+            <div class="section-block">
+                <h2>1. Identificação da Unidade</h2>
+                <div class="form-group">
+                    <label for="tagAtivo">TAG do Componente, Nota ou Ordem *</label>
+                    <div class="search-box">
+                        <input type="text" id="tagAtivo" placeholder="Ex: RJB-03119 ou 900300602" required>
+                        <button type="button" id="btnBuscar" class="btn-check">Buscar Infra</button>
+                    </div>
+                </div>
+                
+                <div id="infoAtivo" class="auto-fields">
+                    <p><strong>Unidade:</strong> <span id="lblUnidade">---</span></p>
+                    <p><strong>Planta/Infra:</strong> <span id="lblPlanta">---</span></p>
+                    <p><strong>Endereço:</strong> <span id="lblEndereco">---</span></p>
+                </div>
+            </div>
+
+            <div class="section-block">
+                <h2>2. Parâmetros de Campo (Aferições)</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="potencia">Potência (cv)</label>
+                        <input type="text" id="potencia" placeholder="Ex: 12.5cv">
+                    </div>
+                    <div class="form-group">
+                        <label for="rpm">RPM do Motor</label>
+                        <input type="text" id="rpm" placeholder="Ex: 3515">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="acionamento">Contatora, Soft-Starter ou Inversor</label>
+                    <input type="text" id="acionamento" placeholder="Ex: Danfoss VLT Aqua Drive">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tensao">Tensão FF</label>
+                        <input type="text" id="tensao" placeholder="Ex: 220v - 220v - 219v">
+                    </div>
+                    <div class="form-group">
+                        <label for="corrente">Corrente Total</label>
+                        <input type="text" id="corrente" placeholder="Ex: 19a - 20a - 19a">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="recalque">Recalque (mca)</label>
+                        <input type="text" id="recalque" placeholder="Ex: 90">
+                    </div>
+                    <div class="form-group">
+                        <label for="retaguarda">Retaguarda (mca)</label>
+                        <input type="text" id="retaguarda" placeholder="Ex: 08">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="correnteShut">Corr. Shut Off</label>
+                        <input type="text" id="correnteShut" placeholder="Ex: 15a">
+                    </div>
+                    <div class="form-group">
+                        <label for="recalqueShut">Recalque Shut Off</label>
+                        <input type="text" id="recalqueShut" placeholder="Ex: 95mca">
+                    </div>
+                    <div class="form-group">
+                        <label for="retaguardaShut">Retag. Shut Off</label>
+                        <input type="text" id="retaguardaShut" placeholder="Ex: mca">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-block">
+                <h2>3. Execução do Serviço</h2>
+                
+                <div class="form-group">
+                    <label>Tipo de Serviço *</label>
+                    <div class="radio-container">
+                        <label class="radio-label">
+                            <input type="radio" name="tipoServico" value="Preventiva" checked> Preventiva
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tipoServico" value="Corretiva"> Corretiva
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="servicoExecutado">Serviço Executado *</label>
+                    <textarea id="servicoExecutado" rows="3" placeholder="Descreva detalhadamente a manutenção efetuada..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statusChegada">Na Chegada</label>
+                        <select id="statusChegada">
+                            <option value="Ligado">Ligado</option>
+                            <option value="Desligado">Desligado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusSaida">Na Saída</label>
+                        <select id="statusSaida">
+                            <option value="Ligado" selected>Ligado</option>
+                            <option value="Desligado">Desligado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modoOperacao">Status</label>
+                        <select id="modoOperacao">
+                            <option value="Automático" selected>Automático</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="colaboradores">Nome dos Colaboradores (separados por vírgula) *</label>
+                    <input type="text" id="colaboradores" placeholder="Ex: Jorge, Ronaldo, Márcio" required>
+                </div>
+            </div>
+
+            <div class="actions-stack">
+                <button type="submit" id="btnWhats" class="btn-submit">Enviar para o Sheets e WhatsApp 🚀</button>
+                <button type="button" id="btnCopiarText" class="btn-copy">Copiar Texto do Relatório 📋</button>
+                <button type="button" class="btn-back" onclick="location.href='../index.html'">Voltar ao Menu</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

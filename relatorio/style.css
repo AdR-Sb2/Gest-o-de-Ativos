@@ -1,0 +1,214 @@
+/* --- Import do Padrão Inter --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #0ea5e9;
+    --primary-hover: #0284c7;
+    --bg-body: #0f172a;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --border: #e2e8f0;
+}
+
+body {
+    background-color: var(--bg-body);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 520px;
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+header h1 {
+    font-size: 24px;
+    color: var(--bg-body);
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+header p {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.section-block {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.section-block h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bg-body);
+    margin-bottom: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+input[type="text"], textarea, select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 15px;
+    background-color: #fff;
+    color: var(--text-main);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+}
+
+.search-box {
+    display: flex;
+    gap: 8px;
+}
+
+.search-box input {
+    flex: 1;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.auto-fields {
+    background-color: #f1f5f9;
+    border-left: 4px solid var(--primary);
+    padding: 12px;
+    border-radius: 4px 12px 12px 4px;
+    margin-top: 14px;
+}
+
+.auto-fields p {
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #334155;
+}
+
+.auto-fields p:last-child {
+    margin-bottom: 0;
+}
+
+.radio-container {
+    display: flex;
+    gap: 24px;
+    padding: 8px 0;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.radio-label input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+/* --- Pilha Estruturada de Botões --- */
+.actions-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+button {
+    width: 100%;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-check {
+    width: auto;
+    padding: 0 20px;
+    background: var(--bg-body);
+    color: white;
+}
+
+.btn-submit {
+    background: var(--success);
+    color: white;
+}
+
+.btn-copy {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-back {
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    text-decoration: underline;
+    padding: 8px;
+}
+
+button:hover {
+    filter: brightness(0.92);
+}
+
+button:active {
+    transform: scale(0.98);
+}
