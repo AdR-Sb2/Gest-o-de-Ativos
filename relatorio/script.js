@@ -2,13 +2,15 @@
 const LINK_PLANILHA_ELEVATORIAS = 'bd_elevatoria.csv';
 let baseElevatorias = [];
 
-// 1. CARREGAMENTO DA PLANILHA REAL
+// 1. CARREGAMENTO DA PLANILHA REAL (Atualizado para ler acentos do Excel perfeitamente)
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ELEVATORIAS);
         if (!response.ok) throw new Error("Erro ao acessar o arquivo de Elevatórias");
         const buffer = await response.arrayBuffer();
-        const decoder = new TextDecoder('windows-1252'); 
+        
+        // MUDANÇA AQUI: Alterado para 'utf-8' para corrigir os acentos corrompidos
+        const decoder = new TextDecoder('utf-8'); 
         let data = decoder.decode(buffer);
         
         // Remove qualquer caractere invisível de salvamento do Excel (BOM)
