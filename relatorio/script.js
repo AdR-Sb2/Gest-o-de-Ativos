@@ -183,7 +183,7 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
     renderizarCamposMotores();
 
     // FORÇA O BLOCO A APARECER APENAS AGORA!
-    document.getElementById('restoDoFormulario').style.display = 'block';
+    document.getElementById('restoDoFormulario').style.display = none;
 });
 // 4. GERAÇÃO DO TEXTO DO RELATÓRIO
 function gerarTextoRelatorio() {
