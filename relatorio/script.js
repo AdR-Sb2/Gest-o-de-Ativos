@@ -1,4 +1,5 @@
 // Aponta para a sua nova planilha de Elevatórias salva na raiz do seu projeto
+// será que vai?
 const LINK_PLANILHA_ELEVATORIAS = 'bd_elevatoria.csv';
 let baseElevatorias = [];
 
