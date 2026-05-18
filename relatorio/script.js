@@ -21,8 +21,6 @@ window.onload = async function() {
         console.error("Erro ao carregar base de elevatórias:", error);
         alert("Aviso: Não foi possível ler '" + LINK_PLANILHA_ELEVATORIAS + "'. Modo manual liberado.");
     }
-    
-    // CORREÇÃO: Removido o renderizarCamposMotores daqui para não aparecer nada antes da busca!
 };
 
 // Processa exatamente a estrutura do seu arquivo CSV real
@@ -76,6 +74,7 @@ function renderizarCamposMotores() {
     for (let i = 1; i <= quantidade; i++) {
         const divGrupo = document.createElement('div');
         divGrupo.className = 'section-block';
+        divGrupo.style.borderLeft = '4px solid var(--primary)';
         divGrupo.innerHTML = `
             <div class="form-group" style="margin-bottom: 12px;">
                 <label style="color: var(--primary); font-weight: 700;">NOME DO GRUPO (EDITÁVEL)</label>
@@ -179,12 +178,13 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         `;
     }
 
-    // Desenha os motores correspondentes à quantidade selecionada
+    // Desenha os motores correspondentes à quantidade padrão (1)
     renderizarCamposMotores();
 
-    // FORÇA O BLOCO A APARECER APENAS AGORA!
-    document.getElementById('restoDoFormulario').style.display = none;
+    // EXIBE O RESTO DO FORMULÁRIO APENAS APÓS A BUSCA
+    document.getElementById('restoDoFormulario').style.display = 'block';
 });
+
 // 4. GERAÇÃO DO TEXTO DO RELATÓRIO
 function gerarTextoRelatorio() {
     const unidade = document.getElementById('lblUnidade').innerText;
@@ -229,7 +229,7 @@ function gerarTextoRelatorio() {
         const rpm = document.getElementById(`rpm_G${i}`).value.trim();
         const pot = document.getElementById(`potencia_G${i}`).value.trim();
         const ten = document.getElementById(`tensao_G${i}`).value.trim();
-        const cor = document.getElementById(`corrente_G${i}`).value.trim();
+        const cor = document.getElementById('corrente_G' + i).value.trim();
         const corShut = document.getElementById(`correnteShutoff_G${i}`).value.trim(); 
 
         texto += `*MOTOR ${nomeGrupo.toUpperCase()}*\n`;
@@ -259,7 +259,7 @@ function gerarTextoRelatorio() {
 
     texto += `*SERVIÇO EXECUTADO:* ${servicoExecutado}\n\n`;
     texto += `*OBS:* ${obs || '---'}\n\n`;
-    
+
     const listaNomes = colaboradores.split(/[,/]/).map(n => n.trim()).join('\n');
     texto += `*COLABORADORES:*\n${listaNomes}\n\n`;
     
