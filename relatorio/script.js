@@ -1,25 +1,32 @@
 // Aponta para a base de dados em CSV que você já tem na raiz do projeto
-const LINK_PLANILHA_ONLINE = '../Atributos 18.05.csv'; 
+const LINK_PLANILHA_ONLINE = 'BD Relatórios - Página1.csv'; 
 let baseDadosLocal = [];
 
 // Carrega o CSV assim que a página abre
 window.onload = async function() {
     try {
-        const response = await fetch(https://docs.google.com/spreadsheets/d/1ML8LBnplrQ2zJTP2NmrZUZLLlYonJECxK5LYCqETDRk/edit?gid=0#gid=0);
+        const response = await fetch(LINK_PLANILHA_ONLINE);
+        if (!response.ok) {
+            throw new Error(`Erro ao acessar o arquivo CSV: ${response.statusText}`);
+        }
         const buffer = await response.arrayBuffer();
         const decoder = new TextDecoder('windows-1252');
         const data = decoder.decode(buffer);
         processarCSV(data);
-        console.log("Banco de dados local integrado com sucesso!");
+        console.log("Banco de dados local integrado com sucesso! Linhas carregadas: " + baseDadosLocal.length);
     } catch (error) {
         console.error("Erro ao ler banco de dados local:", error);
+        alert("Aviso: Não foi possível carregar o arquivo 'BD Relatórios - Página1.csv' automaticamente. Verifique se o arquivo está na pasta correta.");
     }
-    renderizarCamposMotores(); // Desenha os blocos iniciais
+    renderizarCamposMotores(); // Desenha os blocos iniciais de motores
 };
 
 function processarCSV(textoCSV) {
-    const linhas = textoCSV.split('\n');
+    // Divide por quebra de linha limpando retornos de carro (\r)
+    const linhas = textoCSV.split(/\r?\n/);
+    
     baseDadosLocal = linhas.map(linha => {
+        if (!linha.trim()) return null;
         const colunas = linha.split(';');
         return {
             municipio: colunas[1] ? colunas[1].trim() : '',
@@ -30,10 +37,10 @@ function processarCSV(textoCSV) {
             atributo: colunas[6] ? colunas[6].trim() : '',
             valor: colunas[7] ? colunas[7].trim() : ''
         };
-    });
+    }).filter(item => item !== null);
 }
 
-// 1. MONITOR DE QUANTIDADE DE GRUPOS - GERA OS CAMPOS NA HORA
+// MONITOR DE QUANTIDADE DE GRUPOS - GERA OS CAMPOS NA HORA
 document.getElementById('qtdGrupos').addEventListener('change', renderizarCamposMotores);
 
 function renderizarCamposMotores() {
@@ -42,36 +49,32 @@ function renderizarCamposMotores() {
     container.innerHTML = ''; // Limpa anterior
 
     for (let i = 1; i <= quantidade; i++) {
-        // Se pular o 3 e for pro 4 igual no modelo JK, ajustamos o rótulo
-        let numeroGrupo = i;
-        if (quantidade === 4 && i === 3) numeroGrupo = i; // Mantém sequencial padrão ou força personalizado
-
         const divGrupo = document.createElement('div');
         divGrupo.className = 'section-block';
         divGrupo.innerHTML = `
-            <h2>Parâmetros: Motor G${numeroGrupo}</h2>
+            <h2>Parâmetros: Motor G${i}</h2>
             <div class="form-group">
                 <label>Modelo da Contatora, Soft ou Inversor</label>
-                <input type="text" id="acionamento_G${numeroGrupo}" placeholder="Ex: INVERSOR DE FREQUÊNCIA SD750">
+                <input type="text" id="acionamento_G${i}" placeholder="Ex: INVERSOR DE FREQUÊNCIA SD750">
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>RPM</label>
-                    <input type="text" id="rpm_G${numeroGrupo}" placeholder="Ex: 1790">
+                    <input type="text" id="rpm_G${i}" placeholder="Ex: 1790">
                 </div>
                 <div class="form-group">
                     <label>Potência</label>
-                    <input type="text" id="potencia_G${numeroGrupo}" placeholder="Ex: 450CV">
+                    <input type="text" id="potencia_G${i}" placeholder="Ex: 450CV">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Tensão FF</label>
-                    <input type="text" id="tensao_G${numeroGrupo}" placeholder="Ex: 440V">
+                    <input type="text" id="tensao_G${i}" placeholder="Ex: 440V">
                 </div>
                 <div class="form-group">
                     <label>Corrente Elétrica</label>
-                    <input type="text" id="corrente_G${numeroGrupo}" placeholder="Ex: 391/391A/385A">
+                    <input type="text" id="corrente_G${i}" placeholder="Ex: 391/391A/385A">
                 </div>
             </div>
         `;
@@ -82,19 +85,33 @@ function renderizarCamposMotores() {
 // 2. BUSCA AUTOMÁTICA INTELIGENTE DENTRO DO CSV LOCAL
 document.getElementById('btnBuscar').addEventListener('click', function() {
     const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
-    if(!busca) return alert('Digite uma TAG ou Ordem!');
+    if(!busca) {
+        alert('Digite uma TAG, Nota ou Ordem para realizar a busca!');
+        return;
+    }
 
-    // Procura na base de dados carregada do seu CSV
-    const registro = baseDadosLocal.find(r => r.tagComp.toUpperCase() === busca || r.tagPlanta.toUpperCase() === busca);
+    // Se o banco falhar ou não carregar, permite usar o modo manual direto sem travar a tela
+    if (baseDadosLocal.length === 0) {
+        alert("Base de dados local vazia ou não carregada. Configurando como Unidade Manual.");
+        configurarLayoutManual(busca);
+        return;
+    }
+
+    // Busca exata pela TAG do Componente ou pela TAG da Planta
+    const registro = baseDadosLocal.find(r => 
+        (r.tagComp && r.tagComp.toUpperCase() === busca) || 
+        (r.tagPlanta && r.tagPlanta.toUpperCase() === busca) ||
+        (r.descPlanta && r.descPlanta.toUpperCase().includes(busca))
+    );
 
     if (registro) {
-        document.getElementById('lblUnidade').innerText = registro.descPlanta;
-        document.getElementById('lblPlanta').innerText = registro.tagPlanta;
-        document.getElementById('lblMunicipio').innerText = registro.municipio;
+        document.getElementById('lblUnidade').innerText = registro.descPlanta || "---";
+        document.getElementById('lblPlanta').innerText = registro.tagPlanta || "---";
+        document.getElementById('lblMunicipio').innerText = registro.municipio || "---";
 
-        // Customização automática de pressão se for o Booster JK (Planta 0746)
+        // Customização automática de pressões se for o Booster JK (Planta 0746)
         const containerPressoes = document.getElementById('containerPressoes');
-        if (registro.tagPlanta.includes('0746') || registro.descPlanta.includes('JK')) {
+        if (registro.tagPlanta.includes('0746') || (registro.descPlanta && registro.descPlanta.toUpperCase().includes('JK'))) {
             containerPressoes.innerHTML = `
                 <div class="form-group">
                     <label for="recalqueVelho">JK VELHO (mca)</label>
@@ -106,6 +123,19 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
                 </div>
             `;
             document.getElementById('retaguarda').value = "10MCA";
+            document.getElementById('qtdGrupos').value = "4"; // Autoseleciona 4 grupos para o JK
+            renderizarCamposMotores();
+            
+            // Pré-preenche os dados conhecidos do JK para poupar trabalho
+            if(document.getElementById('acionamento_G1')) document.getElementById('acionamento_G1').value = "INVERSOR DE FREQUÊNCIA SD750";
+            if(document.getElementById('rpm_G1')) document.getElementById('rpm_G1').value = "1793";
+            if(document.getElementById('potencia_G1')) document.getElementById('potencia_G1').value = "450CV";
+            if(document.getElementById('tensao_G1')) document.getElementById('tensao_G1').value = "440V";
+
+            if(document.getElementById('acionamento_G2')) document.getElementById('acionamento_G2').value = "INVERSOR DE FREQUÊNCIA SD750";
+            if(document.getElementById('rpm_G2')) document.getElementById('rpm_G2').value = "1790";
+            if(document.getElementById('potencia_G2')) document.getElementById('potencia_G2').value = "450CV";
+            if(document.getElementById('tensao_G2')) document.getElementById('tensao_G2').value = "440V";
         } else {
             // Volta para o layout de recalque único comum para outras subestações
             containerPressoes.innerHTML = `
@@ -116,14 +146,24 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
             `;
         }
     } else {
-        alert("TAG não localizada no Atributos.csv. Pode preencher os dados manualmente.");
-        document.getElementById('lblUnidade').innerText = "Unidade Customizada";
-        document.getElementById('lblPlanta').innerText = busca;
-        document.getElementById('lblMunicipio').innerText = "---";
+        alert("TAG não localizada no sistema. Configurando para preenchimento manual.");
+        configurarLayoutManual(busca);
     }
 });
 
-// 3. GERAÇÃO DO TEXTO PADRONIZADO IGUAL AO ANTIGO
+function configurarLayoutManual(busca) {
+    document.getElementById('lblUnidade').innerText = "Unidade Não Cadastrada";
+    document.getElementById('lblPlanta').innerText = busca;
+    document.getElementById('lblMunicipio').innerText = "---";
+    document.getElementById('containerPressoes').innerHTML = `
+        <div class="form-group">
+            <label for="recalque">Recalque (mca)</label>
+            <input type="text" id="recalque" placeholder="Ex: 90">
+        </div>
+    `;
+}
+
+// 3. GERAÇÃO DO TEXTO PADRONIZADO
 function gerarTextoRelatorio() {
     const unidade = document.getElementById('lblUnidade').innerText;
     const planta = document.getElementById('lblPlanta').innerText;
@@ -146,17 +186,15 @@ function gerarTextoRelatorio() {
     texto += `*CAMPO DE PREENCHIMENTO DA EQUIPE EXECUTANTE*\n\n`;
     texto += `TAG/ORDEM: ${tag}\n\n`;
 
-    // Varre a quantidade selecionada de motores dinamicamente
     const quantidade = parseInt(document.getElementById('qtdGrupos').value);
     for (let i = 1; i <= quantidade; i++) {
-        let n = i; 
-        const aci = document.getElementById(`acionamento_G${n}`).value.trim();
-        const rpm = document.getElementById(`rpm_G${n}`).value.trim();
-        const pot = document.getElementById(`potencia_G${n}`).value.trim();
-        const ten = document.getElementById(`tensao_G${n}`).value.trim();
-        const cor = document.getElementById(`corrente_G${n}`).value.trim();
+        const aci = document.getElementById(`acionamento_G${i}`).value.trim();
+        const rpm = document.getElementById(`rpm_G${i}`).value.trim();
+        const pot = document.getElementById(`potencia_G${i}`).value.trim();
+        const ten = document.getElementById(`tensao_G${i}`).value.trim();
+        const cor = document.getElementById(`corrente_G${i}`).value.trim();
 
-        texto += `*MOTOR G${n}*\n`;
+        texto += `*MOTOR G${i}*\n`;
         texto += `*MODELO DA CONTATORA, SOFT OU INVERSOR:* ${aci || '---'}\n`;
         texto += `*RPM:* ${rpm || '---'}\n`;
         texto += `*POTÊNCIA:* ${pot || '---'}\n`;
@@ -164,7 +202,6 @@ function gerarTextoRelatorio() {
         texto += `*CORRENTE ELÉTRICA:* ${cor || '---'}\n\n`;
     }
 
-    // Processamento de Pressões Hidráulicas
     if(retaguarda) texto += `*RETAGUARDA:* ${retaguarda.toUpperCase().includes('MCA') ? retaguarda : retaguarda + 'MCA'}\n`;
     
     if(document.getElementById('recalque')) {
@@ -181,7 +218,6 @@ function gerarTextoRelatorio() {
     texto += `*SERVIÇO EXECUTADO:* ${servicoExecutado}\n\n`;
     texto += `*OBS:* ${obs || '---'}\n\n`;
     
-    // Tratamento de nomes dos colaboradores por linha
     const listaNomes = colaboradores.split(/[,/]/).map(n => n.trim()).join('\n');
     texto += `*COLABORADORES:*\n${listaNomes}\n\n`;
     
@@ -220,14 +256,14 @@ function fallbackCopiaFoco(texto, resolve) {
     let sucesso = false;
     try { sucesso = document.execCommand('copy'); } catch (err) { sucesso = false; }
     document.body.removeChild(textArea);
-    if (!sucesso) window.prompt("Seu celular barrou a cópia automática. Segure abaixo e copie:", texto);
+    if (!sucesso) window.prompt("Seu telemóvel barrou a cópia automática. Segure abaixo e copie:", texto);
     resolve(true);
 }
 
 // 5. EVENTOS DOS BOTÕES
 document.getElementById('btnCopiarText').addEventListener('click', function() {
     if(!document.getElementById('servicoExecutado').value || !document.getElementById('colaboradores').value) {
-        alert('Preencha os campos obrigatórios!');
+        alert('Preencha os campos obrigatórios (Serviço Executado e Colaboradores)!');
         return;
     }
     const textoPronto = gerarTextoRelatorio();
