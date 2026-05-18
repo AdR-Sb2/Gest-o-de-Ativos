@@ -39,8 +39,10 @@ function processarCSVElevatorias(textoCSV) {
     for (let i = 1; i < linhas.length; i++) {
         if (!linhas[i].trim()) continue;
         
-        // Divide as colunas e limpa as aspas do CSV
-        const colunas = linhas[i].split(separador).map(celula => celula.replace(/"/g, '').trim());
+        // Divide as colunas e limpa as aspas do CSV de forma rigorosa
+        const colunas = linhas[i].split(separador).map(celula => {
+            return celula.replace(/^"|"$/g, '').replace(/"/g, '').trim();
+        });
         
         // Mapeamento baseado estritamente no seu arquivo "BD Relatórios - Página1.csv"
         if (colunas[0] || colunas[1]) { 
@@ -54,7 +56,19 @@ function processarCSVElevatorias(textoCSV) {
     }
 }
 
-// 2. MONITOR DINÂMICO DE QUANTIDADE DE GRUPOS (Totalmente manual e editável)
+// Função para exibir ou ocultar o bloco de O.S. no HTML baseado na escolha do Tipo de Serviço
+function toggleOS(mostrar) {
+    const blocoOS = document.getElementById('blocoOS');
+    if (blocoOS) {
+        blocoOS.style.display = mostrar ? 'block' : 'none';
+        if (!mostrar) {
+            const inputOS = document.getElementById('numeroOS');
+            if (inputOS) inputOS.value = ''; // Limpa o campo caso retorne para Preventiva
+        }
+    }
+}
+
+// 2. MONITOR DINÂMICO DE QUANTIDADE DE GRUPOS (Incluindo o parâmetro Corrente em Shutoff)
 document.getElementById('qtdGrupos').addEventListener('change', renderizarCamposMotores);
 
 function renderizarCamposMotores() {
@@ -91,9 +105,13 @@ function renderizarCamposMotores() {
                     <input type="text" id="tensao_G${i}" placeholder="Ex: 440V">
                 </div>
                 <div class="form-group">
-                    <label>Corrente Elétrica</label>
-                    <input type="text" id="corrente_G${i}" placeholder="Ex: 391/391A/385A">
+                    <label>Corrente Elétrica (Operação)</label>
+                    <input type="text" id="corrente_G${i}" placeholder="Ex: 391A">
                 </div>
+            </div>
+            <div class="form-group" style="margin-top: 10px;">
+                <label style="color: #b45309; font-weight: bold;">Corrente Elétrica em Shutoff</label>
+                <input type="text" id="correnteShutoff_G${i}" placeholder="Ex: 180A (Válvula Fechada)">
             </div>
         `;
         container.appendChild(divGrupo);
@@ -109,11 +127,12 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         return;
     }
 
-    // Busca por aproximação na TAG ou no Nome que estão na planilha
-    const estacao = baseElevatorias.find(e => 
-        (e.tagPlanta && e.tagPlanta.includes(busca)) || 
-        (e.nomeElevatoria && e.nomeElevatoria.toUpperCase().includes(busca))
-    );
+    // Busca por aproximação na TAG ou no Nome limpando espaços extras
+    const estacao = baseElevatorias.find(e => {
+        const tagLimpa = e.tagPlanta ? e.tagPlanta.trim().toUpperCase() : '';
+        const nomeLimpo = e.nomeElevatoria ? e.nomeElevatoria.trim().toUpperCase() : '';
+        return tagLimpa.includes(busca) || nomeLimpo.includes(busca);
+    });
 
     if (estacao) {
         // Atualiza a interface com as informações reais colhidas
@@ -128,162 +147,4 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         }
         document.getElementById('lblMunicipio').innerText = localCompleto;
 
-        // Customização de pressões se for o Booster JK (Tratando tanto pela TAG 0746 quanto pelo Nome)
-        const containerPressoes = document.getElementById('containerPressoes');
-        if (estacao.tagPlanta.includes('0746') || (estacao.nomeElevatoria && estacao.nomeElevatoria.toUpperCase().includes('JK'))) {
-            containerPressoes.innerHTML = `
-                <div class="form-group">
-                    <label for="recalqueVelho">JK VELHO (mca)</label>
-                    <input type="text" id="recalqueVelho" value="59MCA">
-                </div>
-                <div class="form-group">
-                    <label for="recalqueNovo">JK NOVO (mca)</label>
-                    <input type="text" id="recalqueNovo" value="92MCA">
-                </div>
-            `;
-            document.getElementById('retaguarda').value = "10MCA";
-        } else {
-            containerPressoes.innerHTML = `
-                <div class="form-group">
-                    <label for="recalque">Recalque (mca)</label>
-                    <input type="text" id="recalque" placeholder="Ex: 75">
-                </div>
-            `;
-        }
-    } else {
-        // Fallback se não encontrar o registro digitado
-        alert("Instalação não localizada no arquivo. Configurado para preenchimento manual.");
-        document.getElementById('lblUnidade').innerText = "Elevatória Operacional";
-        document.getElementById('lblPlanta').innerText = busca;
-        document.getElementById('lblMunicipio').innerText = "Manutenção Preventiva";
-        
-        document.getElementById('containerPressoes').innerHTML = `
-            <div class="form-group">
-                <label for="recalque">Recalque (mca)</label>
-                <input type="text" id="recalque" placeholder="Ex: 80">
-            </div>
-        `;
-    }
-});
-
-// 4. GERAÇÃO DO TEXTO DO RELATÓRIO
-function gerarTextoRelatorio() {
-    const unidade = document.getElementById('lblUnidade').innerText;
-    const planta = document.getElementById('lblPlanta').innerText;
-    const municipio = document.getElementById('lblMunicipio').innerText;
-    const tag = document.getElementById('tagAtivo').value.trim();
-
-    const retaguarda = document.getElementById('retaguarda').value.trim();
-    const tipoServico = document.querySelector('input[name="tipoServico"]:checked').value;
-    const servicoExecutado = document.getElementById('servicoExecutado').value.trim();
-    const obs = document.getElementById('obs').value.trim();
-    const chegada = document.getElementById('statusChegada').value;
-    const saida = document.getElementById('statusSaida').value;
-    const modo = document.getElementById('modoOperacao').value;
-    const colaboradores = document.getElementById('colaboradores').value.trim();
-
-    let texto = `*UNIDADE: ${unidade}*\n`;
-    if(planta !== "---") texto += `*PLANTA DO INFRA:* ${planta}\n`;
-    texto += `*LOCAL:* ${municipio}\n`;
-    texto += `-----------------------------<>--------\n`;
-    texto += `*CAMPO DE PREENCHIMENTO DA EQUIPE EXECUTANTE*\n\n`;
-    texto += `TAG/ORDEM: ${tag}\n\n`;
-
-    const quantidade = parseInt(document.getElementById('qtdGrupos').value);
-    for (let i = 1; i <= quantidade; i++) {
-        const nomeGrupo = document.getElementById(`nome_G${i}`).value.trim() || `G${i}`;
-        const aci = document.getElementById(`acionamento_G${i}`).value.trim();
-        const rpm = document.getElementById(`rpm_G${i}`).value.trim();
-        const pot = document.getElementById(`potencia_G${i}`).value.trim();
-        const ten = document.getElementById(`tensao_G${i}`).value.trim();
-        const cor = document.getElementById(`corrente_G${i}`).value.trim();
-
-        texto += `*MOTOR ${nomeGrupo.toUpperCase()}*\n`;
-        texto += `*MODELO DA CONTATORA, SOFT OU INVERSOR:* ${aci || '---'}\n`;
-        texto += `*RPM:* ${rpm || '---'}\n`;
-        texto += `*POTÊNCIA:* ${pot || '---'}\n`;
-        texto += `*TENSÃO FF:* ${ten || '---'}\n`;
-        texto += `*CORRENTE ELÉTRICA:* ${cor || '---'}\n\n`;
-    }
-
-    if(retaguarda) texto += `*RETAGUARDA:* ${retaguarda.toUpperCase().includes('MCA') ? retaguarda : retaguarda + 'MCA'}\n`;
-    
-    if(document.getElementById('recalque')) {
-        const rec = document.getElementById('recalque').value.trim();
-        if(rec) texto += `*RECALQUE:* ${rec.toUpperCase().includes('MCA') ? rec : rec + 'MCA'}\n`;
-    } else {
-        const rVelho = document.getElementById('recalqueVelho').value.trim();
-        const rNovo = document.getElementById('recalqueNovo').value.trim();
-        texto += `*RECALQUE:JK VELHO:* ${rVelho}\n`;
-        texto += `*RECALQUE:JK NOVO:* ${rNovo}\n`;
-    }
-    texto += `\n`;
-
-    texto += `*SERVIÇO EXECUTADO:* ${servicoExecutado}\n\n`;
-    texto += `*OBS:* ${obs || '---'}\n\n`;
-    
-    const listaNomes = colaboradores.split(/[,/]/).map(n => n.trim()).join('\n');
-    texto += `*COLABORADORES:*\n${listaNomes}\n\n`;
-    
-    texto += `*Na chegada:* ${chegada === 'Ligado' ? 'Ligado (x) Desligado ()' : 'Ligado () Desligado (x)'}\n`;
-    texto += `*Na saída:* ${saida === 'Ligado' ? 'Ligado (x) Desligado ()' : 'Ligado () Desligado (x)'}\n`;
-    texto += `*Status:* ${modo === 'Automático' ? 'Manual ()  Automático (x)' : 'Manual (x)  Automático ()'}`;
-
-    return texto;
-}
-
-// 5. MECANISMO DE CÓPIA MOBILE
-function executarCopiaTexto(texto) {
-    return new Promise((resolve) => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(texto).then(() => resolve(true)).catch(() => fallbackCopiaFoco(texto, resolve));
-        } else {
-            fallbackCopiaFoco(texto, resolve);
-        }
-    });
-}
-
-function fallbackCopiaFoco(texto, resolve) {
-    const textArea = document.createElement("textarea");
-    textArea.value = texto;
-    textArea.style.position = "fixed";
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.width = "2em";
-    textArea.style.height = "2em";
-    textArea.style.background = "transparent";
-    textArea.style.border = "none";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    textArea.setSelectionRange(0, 999999);
-    let sucesso = false;
-    try { sucesso = document.execCommand('copy'); } catch (err) { sucesso = false; }
-    document.body.removeChild(textArea);
-    if (!sucesso) window.prompt("Segure abaixo para copiar o texto:", texto);
-    resolve(true);
-}
-
-// 6. EVENTOS DOS BOTÕES
-document.getElementById('btnCopiarText').addEventListener('click', function() {
-    if(!document.getElementById('servicoExecutado').value || !document.getElementById('colaboradores').value) {
-        alert('Preencha os campos obrigatórios (Serviço Executado e Colaboradores)!');
-        return;
-    }
-    const textoPronto = gerarTextoRelatorio();
-    const btn = document.getElementById('btnCopiarText');
-    executarCopiaTexto(textoPronto).then(() => {
-        btn.innerText = "Copiado com Sucesso! ✓";
-        btn.style.backgroundColor = "#10b981";
-        setTimeout(() => {
-            btn.innerText = "Copiar Texto do Relatório 📋";
-            btn.style.backgroundColor = "";
-        }, 2000);
-    });
-});
-
-document.getElementById('relatorioForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const textoCompleto = gerarTextoRelatorio();
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompleto)}`, '_blank');
-});
+        // Customização de pressões se for o Booster JK (Tr
