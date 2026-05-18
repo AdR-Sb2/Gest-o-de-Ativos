@@ -115,7 +115,7 @@ function renderizarCamposMotores() {
     }
 }
 
-// 3. BOTÃO BUSCAR (Procura por qualquer parte do Nome ou da TAG da Planta)
+// 3. BOTÃO BUSCAR
 document.getElementById('btnBuscar').addEventListener('click', function() {
     const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
     
@@ -179,10 +179,10 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         `;
     }
 
-    // Renderiza os motores na tela
+    // Desenha os motores correspondentes à quantidade selecionada
     renderizarCamposMotores();
 
-    // NOVA LINHA AQUI: Faz aparecer o resto do formulário na tela
+    // FORÇA O BLOCO A APARECER APENAS AGORA!
     document.getElementById('restoDoFormulario').style.display = 'block';
 });
 // 4. GERAÇÃO DO TEXTO DO RELATÓRIO
