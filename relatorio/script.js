@@ -1,8 +1,8 @@
 // Aponta para a sua nova planilha de Elevatórias salva na raiz do seu projeto
-const LINK_PLANILHA_ELEVATORIAS = 'BD Relatórios - Página1.csv'; 
+const LINK_PLANILHA_ELEVATORIAS = 'BD Relatórios - Página1.csv';
 let baseElevatorias = [];
 
-// 1. CARREGAMENTO DA PLANILHA (Apenas para puxar Nome, Planta e Município)
+// 1. CARREGAMENTO DA PLANILHA (Detecta o separador automaticamente baseado na sua print)
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ELEVATORIAS);
@@ -21,14 +21,25 @@ window.onload = async function() {
 
 function processarCSVElevatorias(textoCSV) {
     const linhas = textoCSV.split(/\r?\n/);
+    if (linhas.length < 2) return;
+
+    // Detecta se a planilha usa vírgula ou ponto e vírgula (Olhando a print, a sua usa vírgula)
+    const primeiraLinha = linhas[0];
+    const separador = primeiraLinha.includes(';') ? ';' : ',';
+    console.log("Separador detectado automaticamente: -> " + separador);
+
+    baseElevatorias = []; // Limpa resíduos
+
     for (let i = 1; i < linhas.length; i++) {
         if (!linhas[i].trim()) continue;
-        const colunas = linhas[i].split(';');
+        
+        const colunas = linhas[i].split(separador);
+        
         baseElevatorias.push({
-            tagPlanta: colunas[0] ? colunas[0].trim().toUpperCase() : '',      
-            municipio: colunas[1] ? colunas[1].trim() : '',                  
-            localidade: colunas[2] ? colunas[2].trim() : '',                 
-            nomeElevatoria: colunas[3] ? colunas[3].trim() : ''
+            tagPlanta: colunas[0] ? colunas[0].replace(/"/g, '').trim().toUpperCase() : '',      
+            municipio: colunas[1] ? colunas[1].replace(/"/g, '').trim() : '',                  
+            localidade: colunas[2] ? colunas[2].replace(/"/g, '').trim() : '',                 
+            nomeElevatoria: colunas[3] ? colunas[3].replace(/"/g, '').trim() : ''
         });
     }
 }
@@ -79,7 +90,7 @@ function renderizarCamposMotores() {
     }
 }
 
-// 3. BOTÃO BUSCAR - PREENCHE SÓ OS DADOS DA PLANILHA (SEM ALTERAR OS GRUPOS)
+// 3. BOTÃO BUSCAR COM FILTRO PARCIAL (.INCLUDES)
 document.getElementById('btnBuscar').addEventListener('click', function() {
     const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
     
@@ -88,19 +99,20 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         return;
     }
 
+    // Varre a planilha procurando se o texto digitado está contido na TAG ou no Nome
     const estacao = baseElevatorias.find(e => 
-        e.tagPlanta.includes(busca) || 
-        e.nomeElevatoria.toUpperCase().includes(busca)
+        (e.tagPlanta && e.tagPlanta.includes(busca)) || 
+        (e.nomeElevatoria && e.nomeElevatoria.toUpperCase().includes(busca))
     );
 
     if (estacao) {
-        document.getElementById('lblUnidade').innerText = estacao.nomeElevatoria;
-        document.getElementById('lblPlanta').innerText = estacao.tagPlanta;
-        document.getElementById('lblMunicipio').innerText = `${estacao.localidade} - ${estacao.municipio}`;
+        document.getElementById('lblUnidade').innerText = estacao.nomeElevatoria || "---";
+        document.getElementById('lblPlanta').innerText = estacao.tagPlanta || "---";
+        document.getElementById('lblMunicipio').innerText = `${estacao.localidade || ''} - ${estacao.municipio || ''}`;
 
-        // Customização visual de pressões se for o Booster JK
+        // Customização de pressões se for o Booster JK (0746)
         const containerPressoes = document.getElementById('containerPressoes');
-        if (estacao.tagPlanta.includes('0746') || estacao.nomeElevatoria.toUpperCase().includes('JK')) {
+        if (estacao.tagPlanta.includes('0746') || (estacao.nomeElevatoria && estacao.nomeElevatoria.toUpperCase().includes('JK'))) {
             containerPressoes.innerHTML = `
                 <div class="form-group">
                     <label for="recalqueVelho">JK VELHO (mca)</label>
@@ -121,7 +133,8 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
             `;
         }
     } else {
-        alert("Instalação não mapeada no arquivo. Configurado para preenchimento manual.");
+        // Se não achar nada (ou se der erro de leitura local no Chrome), libera digitação livre
+        alert("Instalação não localizada no arquivo. Configurado para preenchimento manual.");
         document.getElementById('lblUnidade').innerText = "Elevatória Operacional";
         document.getElementById('lblPlanta').innerText = busca;
         document.getElementById('lblMunicipio').innerText = "Manutenção Preventiva";
@@ -135,7 +148,7 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
     }
 });
 
-// 4. GERAÇÃO DO TEXTO DO RELATÓRIO CAPTURANDO OS NOMES CUSTOMIZADOS
+// 4. GERAÇÃO DO TEXTO DO RELATÓRIO 
 function gerarTextoRelatorio() {
     const unidade = document.getElementById('lblUnidade').innerText;
     const planta = document.getElementById('lblPlanta').innerText;
@@ -160,7 +173,6 @@ function gerarTextoRelatorio() {
 
     const quantidade = parseInt(document.getElementById('qtdGrupos').value);
     for (let i = 1; i <= quantidade; i++) {
-        // Puxa o nome digitado no input correspondente daquele grupo
         const nomeGrupo = document.getElementById(`nome_G${i}`).value.trim() || `G${i}`;
         const aci = document.getElementById(`acionamento_G${i}`).value.trim();
         const rpm = document.getElementById(`rpm_G${i}`).value.trim();
@@ -202,7 +214,7 @@ function gerarTextoRelatorio() {
     return texto;
 }
 
-// 5. ENGENHARIA DE CÓPIA MOBILE
+// 5. MECANISMO DE CÓPIA MOBILE
 function executarCopiaTexto(texto) {
     return new Promise((resolve) => {
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -234,7 +246,7 @@ function fallbackCopiaFoco(texto, resolve) {
     resolve(true);
 }
 
-// 6. DISPAROS E EVENTOS DOS BOTÕES
+// 6. EVENTOS DOS BOTÕES
 document.getElementById('btnCopiarText').addEventListener('click', function() {
     if(!document.getElementById('servicoExecutado').value || !document.getElementById('colaboradores').value) {
         alert('Preencha os campos obrigatórios (Serviço Executado e Colaboradores)!');
