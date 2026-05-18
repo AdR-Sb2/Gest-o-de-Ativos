@@ -1,5 +1,5 @@
 // Aponta para a sua nova planilha de Elevatórias salva na raiz do seu projeto
-const LINK_PLANILHA_ELEVATORIAS = 'BD Relatórios - Página1.csv';
+const LINK_PLANILHA_ELEVATORIAS = 'bd_elevatoria.csv';
 let baseElevatorias = [];
 
 // 1. CARREGAMENTO DA PLANILHA (Detecta o separador automaticamente baseado na sua print)
