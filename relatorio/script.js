@@ -293,3 +293,33 @@ function fallbackCopiaFoco(texto, resolve) {
     textArea.focus();
     textArea.select();
     textArea.setSelectionRange(0, 999999);
+    let sucesso = false;
+    try { sucesso = document.execCommand('copy'); } catch (err) { sucesso = false; }
+    document.body.removeChild(textArea);
+    if (!sucesso) window.prompt("Segure abaixo para copiar o texto:", texto);
+    resolve(true);
+}
+
+// 6. EVENTOS DOS BOTÕES
+document.getElementById('btnCopiarText').addEventListener('click', function() {
+    if(!document.getElementById('servicoExecutado').value || !document.getElementById('colaboradores').value) {
+        alert('Preencha os campos obrigatórios (Serviço Executado e Colaboradores)!');
+        return;
+    }
+    const textoPronto = gerarTextoRelatorio();
+    const btn = document.getElementById('btnCopiarText');
+    executarCopiaTexto(textoPronto).then(() => {
+        btn.innerText = "Copiado com Sucesso! ✓";
+        btn.style.backgroundColor = "#10b981";
+        setTimeout(() => {
+            btn.innerText = "Copiar Texto do Relatório 📋";
+            btn.style.backgroundColor = "";
+        }, 2000);
+    });
+});
+
+document.getElementById('relatorioForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const textoCompleto = gerarTextoRelatorio();
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompleto)}`, '_blank');
+});
