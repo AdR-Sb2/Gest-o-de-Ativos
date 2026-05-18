@@ -179,10 +179,12 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         `;
     }
 
-    // MUDANÇA AQUI: Só renderiza os motores na tela DEPOIS que o usuário clicou em Buscar!
+    // Renderiza os motores na tela
     renderizarCamposMotores();
-});
 
+    // NOVA LINHA AQUI: Faz aparecer o resto do formulário na tela
+    document.getElementById('restoDoFormulario').style.display = 'block';
+});
 // 4. GERAÇÃO DO TEXTO DO RELATÓRIO
 function gerarTextoRelatorio() {
     const unidade = document.getElementById('lblUnidade').innerText;
