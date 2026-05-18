@@ -1,51 +1,58 @@
-// Aponta para a sua nova planilha de Elevatórias salva na raiz do seu projeto
-// será que vai?
+// Aponta para o seu arquivo real renomeado
 const LINK_PLANILHA_ELEVATORIAS = 'bd_elevatoria.csv';
 let baseElevatorias = [];
 
-// 1. CARREGAMENTO DA PLANILHA (Detecta o separador automaticamente baseado na sua print)
+// 1. CARREGAMENTO DA PLANILHA REAL
 window.onload = async function() {
     try {
         const response = await fetch(LINK_PLANILHA_ELEVATORIAS);
         if (!response.ok) throw new Error("Erro ao acessar o arquivo de Elevatórias");
         const buffer = await response.arrayBuffer();
         const decoder = new TextDecoder('windows-1252'); 
-        const data = decoder.decode(buffer);
+        let data = decoder.decode(buffer);
+        
+        // Remove qualquer caractere invisível de salvamento do Excel (BOM)
+        data = data.replace(/^\uFEFF/, '').replace(/^ï»¿/, '');
+        
         processarCSVElevatorias(data);
-        console.log("Planilha de Elevatórias carregada! Total de registros: " + baseElevatorias.length);
+        console.log("Planilha carregada com sucesso! Total de registros: " + baseElevatorias.length);
     } catch (error) {
         console.error("Erro ao carregar base de elevatórias:", error);
-        alert("Aviso: Não foi possível ler 'Elevatorias.csv' automaticamente. O modo de preenchimento manual está liberado.");
+        alert("Aviso: Não foi possível ler '" + LINK_PLANILHA_ELEVATORIAS + "'. Modo manual liberado.");
     }
     renderizarCamposMotores(); // Desenha a estrutura inicial na tela
 };
 
+// Processa exatamente a estrutura do seu arquivo CSV real
 function processarCSVElevatorias(textoCSV) {
     const linhas = textoCSV.split(/\r?\n/);
     if (linhas.length < 2) return;
 
-    // Detecta se a planilha usa vírgula ou ponto e vírgula (Olhando a print, a sua usa vírgula)
+    // Detecta se o separador gerado pelo Excel foi vírgula ou ponto e vírgula
     const primeiraLinha = linhas[0];
     const separador = primeiraLinha.includes(';') ? ';' : ',';
-    console.log("Separador detectado automaticamente: -> " + separador);
 
-    baseElevatorias = []; // Limpa resíduos
+    baseElevatorias = []; 
 
     for (let i = 1; i < linhas.length; i++) {
         if (!linhas[i].trim()) continue;
         
-        const colunas = linhas[i].split(separador);
+        // Divide as colunas e limpa as aspas do CSV
+        const colunas = linhas[i].split(separador).map(celula => celula.replace(/"/g, '').trim());
         
-        baseElevatorias.push({
-            tagPlanta: colunas[0] ? colunas[0].replace(/"/g, '').trim().toUpperCase() : '',      
-            municipio: colunas[1] ? colunas[1].replace(/"/g, '').trim() : '',                  
-            localidade: colunas[2] ? colunas[2].replace(/"/g, '').trim() : '',                 
-            nomeElevatoria: colunas[3] ? colunas[3].replace(/"/g, '').trim() : ''
-        });
+        // Mapeamento baseado estritamente no seu arquivo "BD Relatórios - Página1.csv"
+        if (colunas[0] || colunas[1]) { 
+            baseElevatorias.push({
+                nomeElevatoria: colunas[0] || '',                  // Coluna A (ELEVATORIAS)
+                tagPlanta: colunas[1] ? colunas[1].toUpperCase() : '', // Coluna B (PLANTA)
+                localidade: colunas[4] || '',                      // Coluna E (BAIRRO)
+                municipio: colunas[5] || ''                        // Coluna F (MUNICIPIO)
+            });
+        }
     }
 }
 
-// 2. MONITOR DINÂMICO DE QUANTIDADE DE GRUPOS
+// 2. MONITOR DINÂMICO DE QUANTIDADE DE GRUPOS (Totalmente manual e editável)
 document.getElementById('qtdGrupos').addEventListener('change', renderizarCamposMotores);
 
 function renderizarCamposMotores() {
@@ -91,7 +98,7 @@ function renderizarCamposMotores() {
     }
 }
 
-// 3. BOTÃO BUSCAR COM FILTRO PARCIAL (.INCLUDES)
+// 3. BOTÃO BUSCAR (Procura por qualquer parte do Nome ou da TAG da Planta)
 document.getElementById('btnBuscar').addEventListener('click', function() {
     const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
     
@@ -100,18 +107,26 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         return;
     }
 
-    // Varre a planilha procurando se o texto digitado está contido na TAG ou no Nome
+    // Busca por aproximação na TAG ou no Nome que estão na planilha
     const estacao = baseElevatorias.find(e => 
         (e.tagPlanta && e.tagPlanta.includes(busca)) || 
         (e.nomeElevatoria && e.nomeElevatoria.toUpperCase().includes(busca))
     );
 
     if (estacao) {
+        // Atualiza a interface com as informações reais colhidas
         document.getElementById('lblUnidade').innerText = estacao.nomeElevatoria || "---";
         document.getElementById('lblPlanta').innerText = estacao.tagPlanta || "---";
-        document.getElementById('lblMunicipio').innerText = `${estacao.localidade || ''} - ${estacao.municipio || ''}`;
+        
+        let localCompleto = "";
+        if (estacao.localidade && estacao.municipio) {
+            localCompleto = `${estacao.localidade} - ${estacao.municipio}`;
+        } else {
+            localCompleto = estacao.localidade || estacao.municipio || "Manutenção";
+        }
+        document.getElementById('lblMunicipio').innerText = localCompleto;
 
-        // Customização de pressões se for o Booster JK (0746)
+        // Customização de pressões se for o Booster JK (Tratando tanto pela TAG 0746 quanto pelo Nome)
         const containerPressoes = document.getElementById('containerPressoes');
         if (estacao.tagPlanta.includes('0746') || (estacao.nomeElevatoria && estacao.nomeElevatoria.toUpperCase().includes('JK'))) {
             containerPressoes.innerHTML = `
@@ -134,7 +149,7 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
             `;
         }
     } else {
-        // Se não achar nada (ou se der erro de leitura local no Chrome), libera digitação livre
+        // Fallback se não encontrar o registro digitado
         alert("Instalação não localizada no arquivo. Configurado para preenchimento manual.");
         document.getElementById('lblUnidade').innerText = "Elevatória Operacional";
         document.getElementById('lblPlanta').innerText = busca;
@@ -149,7 +164,7 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
     }
 });
 
-// 4. GERAÇÃO DO TEXTO DO RELATÓRIO 
+// 4. GERAÇÃO DO TEXTO DO RELATÓRIO
 function gerarTextoRelatorio() {
     const unidade = document.getElementById('lblUnidade').innerText;
     const planta = document.getElementById('lblPlanta').innerText;
