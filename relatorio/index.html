@@ -1,144 +1,98 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar Relatório Técnico - Eletromecânica</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Criar Relatório de Serviço</h1>
-            <p>Insira a TAG, Nota ou Ordem para validar e gerar o relatório padronizado.</p>
-        </header>
-
-        <form id="relatorioForm">
-            <div class="section-block">
-                <h2>1. Identificação da Unidade</h2>
-                <div class="form-group">
-                    <label for="tagAtivo">Tag da Planta, Nota ou Ordem *</label>
-                    <div class="search-box">
-                        <input type="text" id="tagAtivo" placeholder="Ex: 0689 ou Cabuçu" required>
-                        <button type="button" id="btnBuscar" class="btn-check">Buscar</button>
-                    </div>
-                </div>
+<div id="restoDoFormulario" style="display: none;">
                 
-                <div id="infoAtivo" class="auto-fields">
-                    <p><strong>Unidade:</strong> <span id="lblUnidade">---</span></p>
-                    <p><strong>Planta/Infra:</strong> <span id="lblPlanta">---</span></p>
-                    <p><strong>Município:</strong> <span id="lblMunicipio">---</span></p>
+                <div id="containerMotores"></div>
+
+                <div class="section-block">
+                    <h2>3. Parâmetros Hidráulicos (Operação)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="retaguarda">Retaguarda (mca)</label>
+                            <input type="text" id="retaguarda" placeholder="Ex: 15">
+                        </div>
+                        <div id="containerPressoes" class="form-group">
+                            <label for="recalque">Recalque (mca)</label>
+                            <input type="text" id="recalque" placeholder="Ex: 41">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 14px;">
-                    <label for="qtdGrupos">Quantos grupos (motores) operam nesta unidade? *</label>
-                    <select id="qtdGrupos">
-                        <option value="1">1 Grupo (Ex: G1)</option>
-                        <option value="2">2 Grupos (Ex: G1, G2)</option>
-                        <option value="3">3 Grupos (Ex: G1, G2, G3)</option>
-                        <option value="4" selected>4 Grupos (Ex: G1, G2, G3, G4)</option>
-                    </select>
+                <div class="section-block">
+                    <h2>4. Teste em Shutoff (Válvula Fechada)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="retaguardaShutoff">Retaguarda em Shutoff (mca)</label>
+                            <input type="text" id="retaguardaShutoff" placeholder="Ex: 18">
+                        </div>
+                        <div class="form-group">
+                            <label for="recalqueShutoff">Recalque em Shutoff (mca)</label>
+                            <input type="text" id="recalqueShutoff" placeholder="Ex: 110">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <h2>5. Execução do Serviço</h2>
+                    
+                    <div class="form-group">
+                        <label>Tipo de Serviço *</label>
+                        <div class="radio-container">
+                            <label class="radio-label">
+                                <input type="radio" name="tipoServico" value="Preventiva" checked onclick="toggleOS(false)"> Preventiva
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="tipoServico" value="Corretiva" onclick="toggleOS(true)"> Corretiva
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="blocoOS" style="display: none; margin-bottom: 15px;">
+                        <label for="numeroOS" style="color: #dc2626; font-weight: bold;">Número da O.S. *</label>
+                        <input type="text" id="numeroOS" placeholder="Digite o número da O.S. gerada...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="servicoExecutado">Serviço Executado *</label>
+                        <textarea id="servicoExecutado" rows="3" placeholder="Descreva a manutenção efetuada..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="obs">Observações</label>
+                        <input type="text" id="obs" placeholder="Ex: Deixado em automático">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="statusChegada">Na Chegada</label>
+                            <select id="statusChegada">
+                                <option value="Ligado">Ligado</option>
+                                <option value="Desligado">Desligado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="statusSaida">Na Saída</label>
+                            <select id="statusSaida">
+                                <option value="Ligado" selected>Ligado</option>
+                                <option value="Desligado">Desligado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modoOperacao">Status</label>
+                            <select id="modoOperacao">
+                                <option value="Automático" selected>Automático</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="colaboradores">Nome dos Colaboradores *</label>
+                        <input type="text" id="colaboradores" placeholder="Ex: Jorge, Ronaldo" required>
+                    </div>
+                </div>
+
+                <div class="actions-stack">
+                    <button type="button" id="btnCopiarText" class="btn-copy">Copiar Texto do Relatório 📋</button>
+                    <button type="submit" id="btnWhats" class="btn-submit">Enviar para o WhatsApp 🚀</button>
+                    <button type="button" class="btn-back" onclick="location.href='../index.html'">Voltar ao Menu</button>
                 </div>
             </div>
-
-            <div id="containerMotores"></div>
-
-            <div class="section-block">
-                <h2>3. Parâmetros Hidráulicos (Operação)</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="retaguarda">Retaguarda (mca)</label>
-                        <input type="text" id="retaguarda" placeholder="Ex: 15">
-                    </div>
-                    <div id="containerPressoes" class="form-group">
-                        <label for="recalque">Recalque (mca)</label>
-                        <input type="text" id="recalque" placeholder="Ex: 41">
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-block">
-                <h2>4. Teste em Shutoff (Válvula Fechada)</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="retaguardaShutoff">Retaguarda em Shutoff (mca)</label>
-                        <input type="text" id="retaguardaShutoff" placeholder="Ex: 18">
-                    </div>
-                    <div class="form-group">
-                        <label for="recalqueShutoff">Recalque em Shutoff (mca)</label>
-                        <input type="text" id="recalqueShutoff" placeholder="Ex: 110">
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-block">
-                <h2>5. Execução do Serviço</h2>
-                
-                <div class="form-group">
-                    <label>Tipo de Serviço *</label>
-                    <div class="radio-container">
-                        <label class="radio-label">
-                            <input type="radio" name="tipoServico" value="Preventiva" checked onclick="toggleOS(false)"> Preventiva
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="tipoServico" value="Corretiva" onclick="toggleOS(true)"> Corretiva
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group" id="blocoOS" style="display: none; margin-bottom: 15px;">
-                    <label for="numeroOS" style="color: #dc2626; font-weight: bold;">Número da O.S. *</label>
-                    <input type="text" id="numeroOS" placeholder="Digite o número da O.S. gerada...">
-                </div>
-
-                <div class="form-group">
-                    <label for="servicoExecutado">Serviço Executado *</label>
-                    <textarea id="servicoExecutado" rows="3" placeholder="Descreva a manutenção efetuada..." required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="obs">Observações</label>
-                    <input type="text" id="obs" placeholder="Ex: Deixado em automático">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="statusChegada">Na Chegada</label>
-                        <select id="statusChegada">
-                            <option value="Ligado">Ligado</option>
-                            <option value="Desligado">Desligado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="statusSaida">Na Saída</label>
-                        <select id="statusSaida">
-                            <option value="Ligado" selected>Ligado</option>
-                            <option value="Desligado">Desligado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="modoOperacao">Status</label>
-                        <select id="modoOperacao">
-                            <option value="Automático" selected>Automático</option>
-                            <option value="Manual">Manual</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="colaboradores">Nome dos Colaboradores *</label>
-                    <input type="text" id="colaboradores" placeholder="Ex: Jorge, Ronaldo" required>
-                </div>
-            </div>
-
-            <div class="actions-stack">
-                <button type="button" id="btnCopiarText" class="btn-copy">Copiar Texto do Relatório 📋</button>
-                <button type="submit" id="btnWhats" class="btn-submit">Enviar para o WhatsApp 🚀</button>
-                <button type="button" class="btn-back" onclick="location.href='../index.html'">Voltar ao Menu</button>
-            </div>
-        </form>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
