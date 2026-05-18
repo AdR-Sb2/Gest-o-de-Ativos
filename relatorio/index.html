@@ -3,158 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Técnico - Booster / Múltiplos Motores</title>
+    <title>Criar Relatório Técnico - Eletromecânica</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Relatório de Manutenção</h1>
-            <p>Preencha os parâmetros dos motores e dados de pressão da unidade.</p>
+            <h1>Criar Relatório de Serviço</h1>
+            <p>Insira a TAG, Nota ou Ordem para validar e gerar o relatório padronizado.</p>
         </header>
 
         <form id="relatorioForm">
             <div class="section-block">
-                <h2>1. Identificação da Infraestrutura</h2>
+                <h2>1. Identificação da Unidade</h2>
                 <div class="form-group">
-                    <label for="nomeBooster">Nome do Booster / Unidade *</label>
-                    <input type="text" id="nomeBooster" value="BOOSTER JK" required>
+                    <label for="tagAtivo">TAG do Componente, Nota ou Ordem *</label>
+                    <div class="search-box">
+                        <input type="text" id="tagAtivo" placeholder="Ex: RJB-03119 ou 900300602" required>
+                        <button type="button" id="btnBuscar" class="btn-check">Buscar</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="unidade">Unidade (EEAT/ETE) *</label>
-                    <input type="text" id="unidade" value="ESTAÇÃO ELEVATÓRIA DE ÁGUA TRATADA (EEAT)0746 JK" required>
-                </div>
-                <div class="form-group">
-                    <label for="endereco">Endereço Completo *</label>
-                    <input type="text" id="endereco" value="R. da Cascata, 660 - Pres. Juscelino, Mesquita-rj" required>
-                </div>
-            </div>
-
-            <div class="section-block">
-                <h2>2. Parâmetros dos Motores</h2>
                 
-                <div class="motor-group">
-                    <h3>MOTOR G1</h3>
-                    <div class="form-group">
-                        <label>Acionamento (Contatora/Soft/Inversor)</label>
-                        <input type="text" id="acionamentoG1" value="INVERSOR DE FREQUÊNCIA SD750">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>RPM</label>
-                            <input type="text" id="rpmG1" value="1793">
-                        </div>
-                        <div class="form-group">
-                            <label>Potência</label>
-                            <input type="text" id="potenciaG1" value="450CV">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Tensão FF</label>
-                            <input type="text" id="tensaoG1" value="440V">
-                        </div>
-                        <div class="form-group">
-                            <label>Corrente Elétrica</label>
-                            <input type="text" id="correnteG1" value="461/466A/462A">
-                        </div>
-                    </div>
+                <div id="infoAtivo" class="auto-fields">
+                    <p><strong>Unidade:</strong> <span id="lblUnidade">---</span></p>
+                    <p><strong>Planta/Infra:</strong> <span id="lblPlanta">---</span></p>
+                    <p><strong>Município:</strong> <span id="lblMunicipio">---</span></p>
                 </div>
 
-                <div class="motor-group">
-                    <h3>MOTOR G2</h3>
-                    <div class="form-group">
-                        <label>Acionamento (Contatora/Soft/Inversor)</label>
-                        <input type="text" id="acionamentoG2" value="INVERSOR DE FREQUÊNCIA SD750">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>RPM</label>
-                            <input type="text" id="rpmG2" value="1790">
-                        </div>
-                        <div class="form-group">
-                            <label>Potência</label>
-                            <input type="text" id="potenciaG2" value="450CV">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Tensão FF</label>
-                            <input type="text" id="tensaoG2" value="440V">
-                        </div>
-                        <div class="form-group">
-                            <label>Corrente Elétrica</label>
-                            <input type="text" id="correnteG2" value="391/391A/385A">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="motor-group">
-                    <h3>MOTOR G4</h3>
-                    <div class="form-group">
-                        <label>Acionamento (Contatora/Soft/Inversor)</label>
-                        <input type="text" id="acionamentoG4" value="INVERSOR DE FREQUÊNCIA SD750">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>RPM</label>
-                            <input type="text" id="rpmG4" value="1790">
-                        </div>
-                        <div class="form-group">
-                            <label>Potência</label>
-                            <input type="text" id="potenciaG4" value="250CV">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Tensão FF</label>
-                            <input type="text" id="tensaoG4" value="220V - 380V - 440V">
-                        </div>
-                        <div class="form-group">
-                            <label>Corrente Elétrica</label>
-                            <input type="text" id="correnteG4" value="215A - 216A - 217A">
-                        </div>
-                    </div>
+                <div class="form-group" style="margin-top: 14px;">
+                    <label for="qtdGrupos">Quantos grupos (motores) operam nesta unidade? *</label>
+                    <select id="qtdGrupos">
+                        <option value="1">1 Grupo (Ex: G1)</option>
+                        <option value="2">2 Grupos (Ex: G1, G2)</option>
+                        <option value="3">3 Grupos (Ex: G1, G2, G3)</option>
+                        <option value="4" selected>4 Grupos (Ex: G1, G2, G3, G4)</option>
+                    </select>
                 </div>
             </div>
+
+            <div id="containerMotores"></div>
 
             <div class="section-block">
                 <h2>3. Parâmetros Hidráulicos</h2>
                 <div class="form-group">
-                    <label for="retaguarda">Retaguarda (MCA)</label>
-                    <input type="text" id="retaguarda" value="10MCA">
+                    <label for="retaguarda">Retaguarda (mca)</label>
+                    <input type="text" id="retaguarda" placeholder="Ex: 10mca">
                 </div>
-                <div class="form-row">
+                <div id="containerPressoes" class="form-row">
                     <div class="form-group">
-                        <label for="recalqueVelho">Recalque: JK VELHO</label>
-                        <input type="text" id="recalqueVelho" value="59MCA">
-                    </div>
-                    <div class="form-group">
-                        <label for="recalqueNovo">Recalque: JK NOVO</label>
-                        <input type="text" id="recalqueNovo" value="92MCA">
+                        <label for="recalque">Recalque (mca)</label>
+                        <input type="text" id="recalque" placeholder="Ex: 90">
                     </div>
                 </div>
             </div>
 
             <div class="section-block">
-                <h2>4. Dados da Execução</h2>
+                <h2>4. Execução do Serviço</h2>
+                
                 <div class="form-group">
-                    <label for="servico">Serviço Executado *</label>
-                    <textarea id="servico" rows="3" required>VERIFICAÇÃO DE FUNCIONAMENTO TESTE DE FUNCIONAMENTO</textarea>
+                    <label>Tipo de Serviço *</label>
+                    <div class="radio-container">
+                        <label class="radio-label">
+                            <input type="radio" name="tipoServico" value="Preventiva" checked> Preventiva
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tipoServico" value="Corretiva"> Corretiva
+                        </label>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="obs">Observações (Se houver)</label>
+                    <label for="servicoExecutado">Serviço Executado *</label>
+                    <textarea id="servicoExecutado" rows="3" placeholder="Descreva a manutenção efetuada..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="obs">Observações</label>
                     <input type="text" id="obs" placeholder="Ex: Deixado em automático">
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="statusChegada">Na Chegada</label>
+                        <select id="statusChegada">
+                            <option value="Ligado">Ligado</option>
+                            <option value="Desligado">Desligado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusSaida">Na Saída</label>
+                        <select id="statusSaida">
+                            <option value="Ligado" selected>Ligado</option>
+                            <option value="Desligado">Desligado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modoOperacao">Status</label>
+                        <select id="modoOperacao">
+                            <option value="Automático" selected>Automático</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="colaboradores">Colaboradores (Separados por barra ou vírgula) *</label>
-                    <input type="text" id="colaboradores" value="Márcio/Diego" required>
+                    <label for="colaboradores">Nome dos Colaboradores *</label>
+                    <input type="text" id="colaboradores" placeholder="Ex: Jorge, Ronaldo" required>
                 </div>
             </div>
 
             <div class="actions-stack">
                 <button type="button" id="btnCopiarText" class="btn-copy">Copiar Texto do Relatório 📋</button>
-                <button type="submit" id="btnWhats" class="btn-submit">Salvar Planilha + WhatsApp 🚀</button>
+                <button type="submit" id="btnWhats" class="btn-submit">Enviar para o WhatsApp 🚀</button>
                 <button type="button" class="btn-back" onclick="location.href='../index.html'">Voltar ao Menu</button>
             </div>
         </form>

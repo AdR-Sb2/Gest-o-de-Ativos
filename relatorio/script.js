@@ -1,65 +1,202 @@
-// Link do seu Google Apps Script 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzJ-hJKfhdf7zMowwzTh4QX6VoN38OCukExhpNfgY4jJNG5QO8l4-uE_12AT53_lUhaLQ/exec"; 
+// Aponta para a base de dados em CSV que você já tem na raiz do projeto
+const LINK_PLANILHA_ONLINE = '../Atributos 18.05.csv'; 
+let baseDadosLocal = [];
 
-// 1. FUNÇÃO MESTRE QUE MONTA O PADRÃO EXATO EXIGIDO
+// Carrega o CSV assim que a página abre
+window.onload = async function() {
+    try {
+        const response = await fetch(LINK_PLANILHA_ONLINE);
+        const buffer = await response.arrayBuffer();
+        const decoder = new TextDecoder('windows-1252');
+        const data = decoder.decode(buffer);
+        processarCSV(data);
+        console.log("Banco de dados local integrado com sucesso!");
+    } catch (error) {
+        console.error("Erro ao ler banco de dados local:", error);
+    }
+    renderizarCamposMotores(); // Desenha os blocos iniciais
+};
+
+function processarCSV(textoCSV) {
+    const linhas = textoCSV.split('\n');
+    baseDadosLocal = linhas.map(linha => {
+        const colunas = linha.split(';');
+        return {
+            municipio: colunas[1] ? colunas[1].trim() : '',
+            tagPlanta: colunas[2] ? colunas[2].trim() : '',
+            descPlanta: colunas[3] ? colunas[3].trim() : '',
+            tagComp: colunas[4] ? colunas[4].trim() : '',
+            descComp: colunas[5] ? colunas[5].trim() : '',
+            atributo: colunas[6] ? colunas[6].trim() : '',
+            valor: colunas[7] ? colunas[7].trim() : ''
+        };
+    });
+}
+
+// 1. MONITOR DE QUANTIDADE DE GRUPOS - GERA OS CAMPOS NA HORA
+document.getElementById('qtdGrupos').addEventListener('change', renderizarCamposMotores);
+
+function renderizarCamposMotores() {
+    const quantidade = parseInt(document.getElementById('qtdGrupos').value);
+    const container = document.getElementById('containerMotores');
+    container.innerHTML = ''; // Limpa anterior
+
+    for (let i = 1; i <= quantidade; i++) {
+        // Se pular o 3 e for pro 4 igual no modelo JK, ajustamos o rótulo
+        let numeroGrupo = i;
+        if (quantidade === 4 && i === 3) numeroGrupo = i; // Mantém sequencial padrão ou força personalizado
+
+        const divGrupo = document.createElement('div');
+        divGrupo.className = 'section-block';
+        divGrupo.innerHTML = `
+            <h2>Parâmetros: Motor G${numeroGrupo}</h2>
+            <div class="form-group">
+                <label>Modelo da Contatora, Soft ou Inversor</label>
+                <input type="text" id="acionamento_G${numeroGrupo}" placeholder="Ex: INVERSOR DE FREQUÊNCIA SD750">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>RPM</label>
+                    <input type="text" id="rpm_G${numeroGrupo}" placeholder="Ex: 1790">
+                </div>
+                <div class="form-group">
+                    <label>Potência</label>
+                    <input type="text" id="potencia_G${numeroGrupo}" placeholder="Ex: 450CV">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tensão FF</label>
+                    <input type="text" id="tensao_G${numeroGrupo}" placeholder="Ex: 440V">
+                </div>
+                <div class="form-group">
+                    <label>Corrente Elétrica</label>
+                    <input type="text" id="corrente_G${numeroGrupo}" placeholder="Ex: 391/391A/385A">
+                </div>
+            </div>
+        `;
+        container.appendChild(divGrupo);
+    }
+}
+
+// 2. BUSCA AUTOMÁTICA INTELIGENTE DENTRO DO CSV LOCAL
+document.getElementById('btnBuscar').addEventListener('click', function() {
+    const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
+    if(!busca) return alert('Digite uma TAG ou Ordem!');
+
+    // Procura na base de dados carregada do seu CSV
+    const registro = baseDadosLocal.find(r => r.tagComp.toUpperCase() === busca || r.tagPlanta.toUpperCase() === busca);
+
+    if (registro) {
+        document.getElementById('lblUnidade').innerText = registro.descPlanta;
+        document.getElementById('lblPlanta').innerText = registro.tagPlanta;
+        document.getElementById('lblMunicipio').innerText = registro.municipio;
+
+        // Customização automática de pressão se for o Booster JK (Planta 0746)
+        const containerPressoes = document.getElementById('containerPressoes');
+        if (registro.tagPlanta.includes('0746') || registro.descPlanta.includes('JK')) {
+            containerPressoes.innerHTML = `
+                <div class="form-group">
+                    <label for="recalqueVelho">JK VELHO (mca)</label>
+                    <input type="text" id="recalqueVelho" value="59MCA">
+                </div>
+                <div class="form-group">
+                    <label for="recalqueNovo">JK NOVO (mca)</label>
+                    <input type="text" id="recalqueNovo" value="92MCA">
+                </div>
+            `;
+            document.getElementById('retaguarda').value = "10MCA";
+        } else {
+            // Volta para o layout de recalque único comum para outras subestações
+            containerPressoes.innerHTML = `
+                <div class="form-group">
+                    <label for="recalque">Recalque (mca)</label>
+                    <input type="text" id="recalque" placeholder="Ex: 90">
+                </div>
+            `;
+        }
+    } else {
+        alert("TAG não localizada no Atributos.csv. Pode preencher os dados manualmente.");
+        document.getElementById('lblUnidade').innerText = "Unidade Customizada";
+        document.getElementById('lblPlanta').innerText = busca;
+        document.getElementById('lblMunicipio').innerText = "---";
+    }
+});
+
+// 3. GERAÇÃO DO TEXTO PADRONIZADO IGUAL AO ANTIGO
 function gerarTextoRelatorio() {
-    const nomeBooster = document.getElementById('nomeBooster').value.trim();
-    const unidade = document.getElementById('unidade').value.trim();
-    const endereco = document.getElementById('endereco').value.trim();
+    const unidade = document.getElementById('lblUnidade').innerText;
+    const planta = document.getElementById('lblPlanta').innerText;
+    const municipio = document.getElementById('lblMunicipio').innerText;
+    const tag = document.getElementById('tagAtivo').value.trim();
 
-    // Dados Hidráulicos
     const retaguarda = document.getElementById('retaguarda').value.trim();
-    const recalqueVelho = document.getElementById('recalqueVelho').value.trim();
-    const recalqueNovo = document.getElementById('recalqueNovo').value.trim();
-
-    const servico = document.getElementById('servico').value.trim();
+    const tipoServico = document.querySelector('input[name="tipoServico"]:checked').value;
+    const servicoExecutado = document.getElementById('servicoExecutado').value.trim();
     const obs = document.getElementById('obs').value.trim();
+    const chegada = document.getElementById('statusChegada').value;
+    const saida = document.getElementById('statusSaida').value;
+    const modo = document.getElementById('modoOperacao').value;
     const colaboradores = document.getElementById('colaboradores').value.trim();
 
-    // Construção da String do Relatório
-    let texto = `${nomeBooster}\n`;
-    texto += `*UNIDADE: ${unidade}*\n`;
-    texto += `*ENDEREÇO: ${endereco}*\n`;
+    let texto = `*UNIDADE: ${unidade}*\n`;
+    if(planta !== "---") texto += `*PLANTA DO INFRA:* ${planta}\n`;
+    texto += `*MUNICÍPIO:* ${municipio}\n`;
     texto += `-----------------------------<>--------\n`;
     texto += `*CAMPO DE PREENCHIMENTO DA EQUIPE EXECUTANTE*\n\n`;
+    texto += `TAG/ORDEM: ${tag}\n\n`;
 
-    // Função interna auxiliar para adicionar dados do motor se preenchidos
-    function adicionarMotor(nome, acionamento, rpm, potencia, tensao, corrente) {
-        let mText = `*${nome}*\n`;
-        mText += `*MODELO DA CONTATORA, SOFT OU INVERSOR: ${acionamento}*\n`;
-        mText += `*RPM: ${rpm}*\n`;
-        mText += `*POTÊNCIA: ${potencia}*\n`;
-        mText += `*TENSÃO FF: ${tensao}*\n`;
-        mText += `*CORRENTE ELÉTRICA:* ${corrente}\n\n`;
-        return mText;
+    // Varre a quantidade selecionada de motores dinamicamente
+    const quantidade = parseInt(document.getElementById('qtdGrupos').value);
+    for (let i = 1; i <= quantidade; i++) {
+        let n = i; 
+        const aci = document.getElementById(`acionamento_G${n}`).value.trim();
+        const rpm = document.getElementById(`rpm_G${n}`).value.trim();
+        const pot = document.getElementById(`potencia_G${n}`).value.trim();
+        const ten = document.getElementById(`tensao_G${n}`).value.trim();
+        const cor = document.getElementById(`corrente_G${n}`).value.trim();
+
+        texto += `*MOTOR G${n}*\n`;
+        texto += `*MODELO DA CONTATORA, SOFT OU INVERSOR:* ${aci || '---'}\n`;
+        texto += `*RPM:* ${rpm || '---'}\n`;
+        texto += `*POTÊNCIA:* ${pot || '---'}\n`;
+        texto += `*TENSÃO FF:* ${ten || '---'}\n`;
+        texto += `*CORRENTE ELÉTRICA:* ${cor || '---'}\n\n`;
     }
 
-    // Adiciona os 3 motores cadastrados
-    texto += adicionarMotor("MOTOR G1", document.getElementById('acionamentoG1').value, document.getElementById('rpmG1').value, document.getElementById('potenciaG1').value, document.getElementById('tensaoG1').value, document.getElementById('correnteG1').value);
-    texto += adicionarMotor("MOTOR G2", document.getElementById('acionamentoG2').value, document.getElementById('rpmG2').value, document.getElementById('potenciaG2').value, document.getElementById('tensaoG2').value, document.getElementById('correnteG2').value);
-    texto += adicionarMotor("MOTOR G4", document.getElementById('acionamentoG4').value, document.getElementById('rpmG4').value, document.getElementById('potenciaG4').value, document.getElementById('tensaoG4').value, document.getElementById('correnteG4').value);
+    // Processamento de Pressões Hidráulicas
+    if(retaguarda) texto += `*RETAGUARDA:* ${retaguarda.toUpperCase().includes('MCA') ? retaguarda : retaguarda + 'MCA'}\n`;
+    
+    if(document.getElementById('recalque')) {
+        const rec = document.getElementById('recalque').value.trim();
+        if(rec) texto += `*RECALQUE:* ${rec.toUpperCase().includes('MCA') ? rec : rec + 'MCA'}\n`;
+    } else {
+        const rVelho = document.getElementById('recalqueVelho').value.trim();
+        const rNovo = document.getElementById('recalqueNovo').value.trim();
+        texto += `*RECALQUE:JK VELHO:* ${rVelho}\n`;
+        texto += `*RECALQUE:JK NOVO:* ${rNovo}\n`;
+    }
+    texto += `\n`;
 
-    // Pressões
-    texto += `*RETAGUARDA ${retaguarda}*\n`;
-    texto += `*RECALQUE:JK VELHO ${recalqueVelho}*\n`;
-    texto += `*RECALQUE:JK NOVO ${recalqueNovo}*\n\n`;
-
-    // Finalização
-    texto += `*SERVIÇO EXECUTADO:* ${servico}\n\n`;
+    texto += `*SERVIÇO EXECUTADO:* ${servicoExecutado}\n\n`;
     texto += `*OBS:* ${obs || '---'}\n\n`;
-    texto += `*COLABORADORES:* ${colaboradores}`;
+    
+    // Tratamento de nomes dos colaboradores por linha
+    const listaNomes = colaboradores.split(/[,/]/).map(n => n.trim()).join('\n');
+    texto += `*COLABORADORES:*\n${listaNomes}\n\n`;
+    
+    texto += `*Na chegada:* ${chegada === 'Ligado' ? 'Ligado (x) Desligado ()' : 'Ligado () Desligado (x)'}\n`;
+    texto += `*Na saída:* ${saida === 'Ligado' ? 'Ligado (x) Desligado ()' : 'Ligado () Desligado (x)'}\n`;
+    texto += `*Status:* ${modo === 'Automático' ? 'Manual ()  Automático (x)' : 'Manual (x)  Automático ()'}`;
 
     return texto;
 }
 
-// 2. SISTEMA DE CÓPIA ROBUSTO (MÉTODO OCULTO DE ALTO FOCO)
+// 4. MECANISMO DE CÓPIA SEGURO MOBILE
 function executarCopiaTexto(texto) {
     return new Promise((resolve) => {
-        // Tenta usando o método Clipboard moderno
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(texto)
-                .then(() => resolve(true))
-                .catch(() => fallbackCopiaFoco(texto, resolve));
+            navigator.clipboard.writeText(texto).then(() => resolve(true)).catch(() => fallbackCopiaFoco(texto, resolve));
         } else {
             fallbackCopiaFoco(texto, resolve);
         }
@@ -67,7 +204,6 @@ function executarCopiaTexto(texto) {
 }
 
 function fallbackCopiaFoco(texto, resolve) {
-    // Cria elemento invisível mas totalmente focado para forçar a cópia no Mobile/Safari
     const textArea = document.createElement("textarea");
     textArea.value = texto;
     textArea.style.position = "fixed";
@@ -75,83 +211,39 @@ function fallbackCopiaFoco(texto, resolve) {
     textArea.style.left = "0";
     textArea.style.width = "2em";
     textArea.style.height = "2em";
-    textArea.style.padding = "0";
-    textArea.style.border = "none";
-    textArea.style.outline = "none";
     textArea.style.background = "transparent";
+    textArea.style.border = "none";
     document.body.appendChild(textArea);
-    
     textArea.focus();
     textArea.select();
     textArea.setSelectionRange(0, 999999);
-    
     let sucesso = false;
-    try {
-        sucesso = document.execCommand('copy');
-    } catch (err) {
-        sucesso = false;
-    }
+    try { sucesso = document.execCommand('copy'); } catch (err) { sucesso = false; }
     document.body.removeChild(textArea);
-    
-    if (sucesso) {
-        resolve(true);
-    } else {
-        // Fallback Crítico: Exibe o prompt se todas as APIs do celular falharem
-        window.prompt("Pressione e segure o texto abaixo para copiar:", texto);
-        resolve(true);
-    }
+    if (!sucesso) window.prompt("Seu celular barrou a cópia automática. Segure abaixo e copie:", texto);
+    resolve(true);
 }
 
-// 3. EVENTO CLIQUE BOTÃO COPIAR
+// 5. EVENTOS DOS BOTÕES
 document.getElementById('btnCopiarText').addEventListener('click', function() {
-    if(!document.getElementById('servico').value || !document.getElementById('colaboradores').value) {
-        alert('Por favor, preencha os campos obrigatórios antes de copiar!');
+    if(!document.getElementById('servicoExecutado').value || !document.getElementById('colaboradores').value) {
+        alert('Preencha os campos obrigatórios!');
         return;
     }
-
     const textoPronto = gerarTextoRelatorio();
     const btn = document.getElementById('btnCopiarText');
-    const corOriginal = btn.style.backgroundColor;
-    
     executarCopiaTexto(textoPronto).then(() => {
         btn.innerText = "Copiado com Sucesso! ✓";
-        btn.style.backgroundColor = "#10b981"; // Muda para verde
+        btn.style.backgroundColor = "#10b981";
         setTimeout(() => {
             btn.innerText = "Copiar Texto do Relatório 📋";
-            btn.style.backgroundColor = corOriginal;
+            btn.style.backgroundColor = "";
         }, 2000);
     });
 });
 
-// 4. SUBMISSÃO DE DADOS (BANCO DE DADOS + REDIRECIONAMENTO WHATSAPP)
 document.getElementById('relatorioForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    const btnSubmit = document.getElementById('btnWhats');
-    btnSubmit.disabled = true;
-    btnSubmit.innerText = "Gravando na Planilha...";
-
-    const payload = [{
-        tipoOperacao: "RELATORIO_MULTIPLOMOTOR",
-        unidade: document.getElementById('unidade').value,
-        servico: document.getElementById('servico').value,
-        colaboradores: document.getElementById('colaboradores').value,
-        dataHora: new Date().toLocaleString('pt-BR')
-    }];
-
-    fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(payload)
-    }).then(() => {
-        const textoCompleto = gerarTextoRelatorio();
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompleto)}`, '_blank');
-    }).catch(err => {
-        console.error("Erro no Sheets:", err);
-        const textoCompleto = gerarTextoRelatorio();
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompleto)}`, '_blank');
-    }).finally(() => {
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = "Salvar Planilha + WhatsApp 🚀";
-    });
+    const textoCompleto = gerarTextoRelatorio();
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompleto)}`, '_blank');
 });

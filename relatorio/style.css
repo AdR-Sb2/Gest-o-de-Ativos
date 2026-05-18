@@ -31,7 +31,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 500px;
+    max-width: 480px;
     background: var(--bg-card);
     border-radius: 24px;
     padding: 24px;
@@ -72,50 +72,41 @@ header p {
     letter-spacing: 0.5px;
 }
 
-.motor-group {
-    background: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 14px;
-}
-
-.motor-group h3 {
-    font-size: 13px;
-    color: #fbbf24;
-    margin-bottom: 10px;
-}
-
 .form-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 12px;
-}
-
-.form-group:last-child {
-    margin-bottom: 0;
+    margin-bottom: 14px;
 }
 
 label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #cbd5e1;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
-input[type="text"], textarea {
+input[type="text"], textarea, select {
     width: 100%;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border: 2px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 10px;
+    font-size: 15px;
     background-color: #1e293b;
     color: white;
     outline: none;
 }
 
-input:focus, textarea:focus {
+input:focus, textarea:focus, select:focus {
     border-color: var(--primary);
+}
+
+.search-box {
+    display: flex;
+    gap: 8px;
+}
+
+.search-box input {
+    flex: 1;
 }
 
 .form-row {
@@ -125,6 +116,33 @@ input:focus, textarea:focus {
 
 .form-row .form-group {
     flex: 1;
+}
+
+.auto-fields {
+    background-color: #1f2937;
+    border-left: 4px solid var(--primary);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 12px;
+}
+
+.auto-fields p {
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #9ca3af;
+}
+
+.radio-container {
+    display: flex;
+    gap: 20px;
+    padding: 6px 0;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
 }
 
 .actions-stack {
@@ -141,26 +159,10 @@ button {
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    transition: transform 0.1s;
 }
 
-.btn-copy {
-    background: var(--warning);
-    color: white;
-}
-
-.btn-submit {
-    background: var(--success);
-    color: white;
-}
-
-.btn-back {
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 14px;
-    text-decoration: underline;
-}
-
-button:active {
-    transform: scale(0.98);
-}
+.btn-check { width: auto; padding: 0 16px; background: var(--primary); color: white; }
+.btn-copy { background: var(--warning); color: white; }
+.btn-submit { background: var(--success); color: white; }
+.btn-back { background: transparent; color: var(--text-muted); font-size: 14px; text-decoration: underline; }
+button:active { transform: scale(0.98); }
