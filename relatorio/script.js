@@ -184,7 +184,6 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
     // EXIBE O RESTO DO FORMULÁRIO APENAS APÓS A BUSCA
     document.getElementById('restoDoFormulario').style.display = 'block';
 });
-
 // 4. GERAÇÃO DO TEXTO DO RELATÓRIO
 function gerarTextoRelatorio() {
     const unidade = document.getElementById('lblUnidade').innerText;
