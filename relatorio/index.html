@@ -17,9 +17,9 @@
             <div class="section-block">
                 <h2>1. Identificação da Unidade</h2>
                 <div class="form-group">
-                    <label for="tagAtivo">TAG do Componente, Nota ou Ordem *</label>
+                    <label for="tagAtivo">Tag da Planta, Nota ou Ordem *</label>
                     <div class="search-box">
-                        <input type="text" id="tagAtivo" placeholder="Ex: RJB-03119 ou 900300602" required>
+                        <input type="text" id="tagAtivo" placeholder="Ex: 0689 ou Cabuçu" required>
                         <button type="button" id="btnBuscar" class="btn-check">Buscar</button>
                     </div>
                 </div>
@@ -44,32 +44,51 @@
             <div id="containerMotores"></div>
 
             <div class="section-block">
-                <h2>3. Parâmetros Hidráulicos</h2>
-                <div class="form-group">
-                    <label for="retaguarda">Retaguarda (mca)</label>
-                    <input type="text" id="retaguarda" placeholder="Ex: 10mca">
-                </div>
-                <div id="containerPressoes" class="form-row">
+                <h2>3. Parâmetros Hidráulicos (Operação)</h2>
+                <div class="form-row">
                     <div class="form-group">
+                        <label for="retaguarda">Retaguarda (mca)</label>
+                        <input type="text" id="retaguarda" placeholder="Ex: 15">
+                    </div>
+                    <div id="containerPressoes" class="form-group">
                         <label for="recalque">Recalque (mca)</label>
-                        <input type="text" id="recalque" placeholder="Ex: 90">
+                        <input type="text" id="recalque" placeholder="Ex: 41">
                     </div>
                 </div>
             </div>
 
             <div class="section-block">
-                <h2>4. Execução do Serviço</h2>
+                <h2>4. Teste em Shutoff (Válvula Fechada)</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="retaguardaShutoff">Retaguarda em Shutoff (mca)</label>
+                        <input type="text" id="retaguardaShutoff" placeholder="Ex: 18">
+                    </div>
+                    <div class="form-group">
+                        <label for="recalqueShutoff">Recalque em Shutoff (mca)</label>
+                        <input type="text" id="recalqueShutoff" placeholder="Ex: 110">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-block">
+                <h2>5. Execução do Serviço</h2>
                 
                 <div class="form-group">
                     <label>Tipo de Serviço *</label>
                     <div class="radio-container">
                         <label class="radio-label">
-                            <input type="radio" name="tipoServico" value="Preventiva" checked> Preventiva
+                            <input type="radio" name="tipoServico" value="Preventiva" checked onclick="toggleOS(false)"> Preventiva
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="tipoServico" value="Corretiva"> Corretiva
+                            <input type="radio" name="tipoServico" value="Corretiva" onclick="toggleOS(true)"> Corretiva
                         </label>
                     </div>
+                </div>
+
+                <div class="form-group" id="blocoOS" style="display: none; margin-bottom: 15px;">
+                    <label for="numeroOS" style="color: #dc2626; font-weight: bold;">Número da O.S. *</label>
+                    <input type="text" id="numeroOS" placeholder="Digite o número da O.S. gerada...">
                 </div>
 
                 <div class="form-group">
