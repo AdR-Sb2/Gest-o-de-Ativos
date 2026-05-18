@@ -1,4 +1,47 @@
-<div id="restoDoFormulario" style="display: none;">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Relatório Técnico - Eletromecânica</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Criar Relatório de Serviço</h1>
+            <p>Insira a TAG, Nota ou Ordem para validar e gerar o relatório padronizado.</p>
+        </header>
+
+        <form id="relatorioForm">
+            <div class="section-block">
+                <h2>1. Identificação da Unidade</h2>
+                <div class="form-group">
+                    <label for="tagAtivo">Tag da Planta, Nota ou Ordem *</label>
+                    <div class="search-box">
+                        <input type="text" id="tagAtivo" placeholder="Ex: 0689 ou Cabuçu" required>
+                        <button type="button" id="btnBuscar" class="btn-check">Buscar</button>
+                    </div>
+                </div>
+                
+                <div id="infoAtivo" class="auto-fields">
+                    <p><strong>Unidade:</strong> <span id=\"lblUnidade\">---</span></p>
+                    <p><strong>Planta/Infra:</strong> <span id=\"lblPlanta\">---</span></p>
+                    <p><strong>Município:</strong> <span id=\"lblMunicipio\">---</span></p>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="qtdGrupos">Quantidade de Grupos Motor-Bomba (Manuais e Editáveis)</label>
+                    <select id="qtdGrupos" style="font-weight: bold; border-color: var(--primary);">
+                        <option value="1">1 Grupo (G1)</option>
+                        <option value="2">2 Grupos (G1 e G2)</option>
+                        <option value="3">3 Grupos (G1, G2 e G3)</option>
+                        <option value="4">4 Grupos (G1, G2, G3 e G4)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="restoDoFormulario" style="display: none;">
                 
                 <div id="containerMotores"></div>
 
@@ -31,7 +74,19 @@
                 </div>
 
                 <div class="section-block">
-                    <h2>5. Execução do Serviço</h2>
+                    <h2>5. Registro Fotográfico</h2>
+                    <div class="form-group">
+                        <label for="fotoInput" class="btn-check" style="display: inline-block; text-align: center; cursor: pointer; padding: 12px; background-color: #4b5563; color: white; border-radius: 6px; font-weight: bold; width: 100%; box-sizing: border-box;">
+                            Selecionar Fotos do Serviço 📸
+                        </label>
+                        <input type="file" id="fotoInput" accept="image/*" multiple style="display: none;">
+                        <small style="display: block; margin-top: 5px; color: #6b7280;">As mídias vão gerar previews abaixo e serão contabilizadas no texto.</small>
+                    </div>
+                    <div id="previewFotos" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;"></div>
+                </div>
+
+                <div class="section-block">
+                    <h2>6. Execução do Serviço</h2>
                     
                     <div class="form-group">
                         <label>Tipo de Serviço *</label>
@@ -95,4 +150,9 @@
                     <button type="submit" id="btnWhats" class="btn-submit">Enviar para o WhatsApp 🚀</button>
                     <button type="button" class="btn-back" onclick="location.href='../index.html'">Voltar ao Menu</button>
                 </div>
-            </div>
+            </div> </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
