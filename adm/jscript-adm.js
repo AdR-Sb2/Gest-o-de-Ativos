@@ -9,27 +9,30 @@ document.getElementById('formIA').addEventListener('submit', function(e) {
     btn.disabled = true;
     btn.innerText = "A IA está processando...";
     status.style.display = "block";
-    status.style.color = "#eab308";
-    status.innerText = "🤖 Lendo relatório e organizando colunas...";
+    status.innerText = "🤖 Lendo relatório...";
 
-   fetch(WEB_APP_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: JSON.stringify({ texto: textoBruto })
-})
-    .then(() => {
-        status.style.color = "#10b981";
-        status.innerText = "✅ Sucesso! Linha adicionada perfeitamente por IA.";
-        document.getElementById('formIA').reset();
-        setTimeout(() => { status.style.display = "none"; }, 4000);
+    // Usamos o objeto FormData que o Google Apps Script adora
+    const formData = new FormData();
+    formData.append('texto', textoBruto);
+
+    fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: formData // Envia como formulário, evita problemas de CORS
+    })
+    .then(response => response.text()) // Agora conseguimos LER a resposta
+    .then(data => {
+        if (data.includes("SUCESSO")) {
+            status.style.color = "#10b981";
+            status.innerText = "✅ Sucesso! Dados gravados na planilha.";
+            document.getElementById('formIA').reset();
+        } else {
+            status.style.color = "#ef4444";
+            status.innerText = "❌ Erro no Script: " + data; // Mostra o erro do Google aqui!
+        }
     })
     .catch(err => {
         status.style.color = "#ef4444";
-        status.innerText = "❌ Erro ao enviar para a IA.";
-        console.error(err);
+        status.innerText = "❌ Erro de conexão.";
     })
     .finally(() => {
         btn.disabled = false;
