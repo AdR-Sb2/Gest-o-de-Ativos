@@ -12,11 +12,14 @@ document.getElementById('formIA').addEventListener('submit', function(e) {
     status.style.color = "#eab308";
     status.innerText = "🤖 Lendo relatório e organizando colunas...";
 
-    fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ texto: textoBruto })
-    })
+   fetch(WEB_APP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: JSON.stringify({ texto: textoBruto })
+})
     .then(() => {
         status.style.color = "#10b981";
         status.innerText = "✅ Sucesso! Linha adicionada perfeitamente por IA.";
