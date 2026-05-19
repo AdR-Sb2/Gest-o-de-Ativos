@@ -1,4 +1,4 @@
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwwDqsszhjjQDQyeE1PF87gwpFWS0LvBM51bzcopAcXTejQkVANkDi6Izz3-G96ebJhFw/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyBBC46SzBBygGykzEQdoZI993o8LsqjpuV0_8q26F_w2M9ikI0EiCanH31wmxWI5e8mQ/exec";
 
 document.getElementById('formIA').addEventListener('submit', function(e) {
     e.preventDefault();
