@@ -5,61 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Importador IA - EMEC Baixada 2</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #0ea5e9;
-            --primary-hover: #0284c7;
-            --bg-body: #0f172a;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #94a3b8;
-        }
-        body {
-            background-color: var(--bg-body);
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { width: 100%; max-width: 550px; }
-        header { text-align: center; margin-bottom: 25px; }
-        header h1 { font-size: 24px; font-weight: 700; color: #ffffff; }
-        header p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
-        
-        .app-form {
-            background: var(--bg-card);
-            padding: 24px;
-            border-radius: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        
-        .whatsapp-box {
-            background: #f0fdf4;
-            border: 2px dashed #25d366;
-            padding: 16px;
-            border-radius: 16px;
-        }
-        .whatsapp-box label { color: #16a34a; font-weight: 700; font-size: 14px; display: block; margin-bottom: 8px; }
-        .whatsapp-box textarea { 
-            width: 100%; padding: 12px; border: 1px solid #bbf7d0; border-radius: 12px; 
-            font-family: inherit; font-size: 14px; resize: vertical; background: #fff; outline: none;
-        }
-        
-        .btn-submit {
-            background-color: var(--primary); color: white; border: none; padding: 14px;
-            border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: background 0.2s;
-        }
-        .btn-submit:hover { background-color: var(--primary-hover); }
-        .btn-submit:disabled { background-color: var(--text-muted); cursor: not-allowed; }
-
-        .status-msg { font-size: 13px; text-align: center; font-weight: 500; display: none; }
-    </style>
+    <link rel="stylesheet" href="../adm/style-admin.css">
 </head>
 <body>
     <div class="container">
@@ -80,43 +26,6 @@
         </form>
     </div>
 
-    <script>
-        // Substitua com a URL gerada no Google Apps Script após implantar
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwwDqsszhjjQDQyeE1PF87gwpFWS0LvBM51bzcopAcXTejQkVANkDi6Izz3-G96ebJhFw/exec";
-
-        document.getElementById('formIA').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnEnviar');
-            const status = document.getElementById('status');
-            const textoBruto = document.getElementById('txt_raw').value;
-
-            btn.disabled = true;
-            btn.innerText = "A IA está processando...";
-            status.style.display = "block";
-            status.style.color = "#eab308";
-            status.innerText = "🤖 Lendo relatório e organizando colunas...";
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ texto: textoBruto })
-            })
-            .then(() => {
-                status.style.color = "#10b981";
-                status.innerText = "✅ Sucesso! Linha adicionada perfeitamente por IA.";
-                document.getElementById('formIA').reset();
-                setTimeout(() => { status.style.display = "none"; }, 4000);
-            })
-            .catch(err => {
-                status.style.color = "#ef4444";
-                status.innerText = "❌ Erro ao enviar para a IA.";
-                console.error(err);
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerText = "Processar e Enviar com IA";
-            });
-        });
-    </script>
+    <script src="../adm/jscript-adm.js"></script>
 </body>
 </html>
