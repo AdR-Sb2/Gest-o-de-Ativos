@@ -24,6 +24,17 @@
 
             <button type="submit" id="btnEnviar" class="btn-submit">Processar e Enviar com IA</button>
         </form>
+        <form id="formIA">
+            <textarea id="txt_raw" placeholder="Cole o relatório aqui..."></textarea>
+            <button type="submit" id="btnEnviar">Processar com IA</button>
+        </form>
+
+        <div id="areaEdicao" style="display: none; margin-top: 20px;">
+            <h3>Revise os dados antes de salvar:</h3>
+            <div id="inputsEdicao">
+        </div>
+            <button id="btnSalvarFinal">Salvar na Planilha</button>
+        </div>
     </div>
 
     <script src="../adm/jscript-adm.js"></script>
