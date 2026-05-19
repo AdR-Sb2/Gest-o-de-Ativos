@@ -118,7 +118,7 @@ function lerArquivo(file) {
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 // REDUZIMOS O TAMANHO PARA 500px PARA EVITAR O ERRO 520
-                const MAX_WIDTH = 200; 
+                const MAX_WIDTH = 500; 
                 let width = img.width;
                 let height = img.height;
 
@@ -133,7 +133,7 @@ function lerArquivo(file) {
                 ctx.drawImage(img, 0, 0, width, height);
 
                 // QUALIDADE 0.3 (30%) - Fica leve e legível para manutenção
-                resolve(canvas.toDataURL('image/jpeg', 0.1));
+                resolve(canvas.toDataURL('image/jpeg', 0.5));
             };
             img.src = e.target.result;
         };
