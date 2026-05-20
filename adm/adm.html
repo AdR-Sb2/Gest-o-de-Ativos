@@ -1,42 +1,55 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Importador IA - EMEC Baixada 2</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
-    <link rel="stylesheet" href="../adm/style-admin.css">
+    <title>Sistema de Relatórios EMEC</title>
+    <style>
+        /* CSS Integrado seguindo o padrão limpo e moderno */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        
+        .container { max-width: 600px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: auto; }
+        
+        h2 { text-align: center; color: #2563eb; }
+        
+        textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; resize: vertical; margin-bottom: 15px; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background 0.3s; }
+        
+        #btnEnviar { background-color: #2563eb; color: white; }
+        #btnEnviar:hover { background-color: #1d4ed8; }
+        
+        #status { display: none; padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center; font-weight: bold; }
+        
+        /* Estilos de Edição */
+        #areaEdicao { display: none; }
+        .input-group { display: flex; flex-direction: column; margin-bottom: 12px; }
+        .input-group label { font-size: 0.85em; font-weight: bold; margin-bottom: 4px; color: #555; }
+        .input-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        #btnSalvarFinal { background-color: #10b981; color: white; margin-top: 10px; }
+        #btnSalvarFinal:hover { background-color: #059669; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Triagem de Relatórios com IA</h1>
-            <p>A Inteligência Artificial vai ler, estruturar e salvar os dados na planilha</p>
-        </header>
-        
-        <form id="formIA" class="app-form">
-            <div class="whatsapp-box">
-                <label>📋 Cole a mensagem do WhatsApp aqui:</label>
-                <textarea id="txt_raw" rows="8" placeholder="Cole o texto do técnico exatamente como veio do grupo..." required></textarea>
-            </div>
 
-            <div id="status" class="status-msg"></div>
+<div class="container">
+    <h2>Registro de Relatório</h2>
+    
+    <div id="status"></div>
 
-            <button type="submit" id="btnEnviar" class="btn-submit">Processar e Enviar com IA</button>
-        </form>
-        <form id="formIA">
-            <textarea id="txt_raw" placeholder="Cole o relatório aqui..."></textarea>
-            <button type="submit" id="btnEnviar">Processar com IA</button>
-        </form>
+    <form id="formIA">
+        <textarea id="txt_raw" placeholder="Cole o texto do relatório aqui..." required></textarea>
+        <button type="submit" id="btnEnviar">Processar com IA</button>
+    </form>
 
-        <div id="areaEdicao" style="display: none; margin-top: 20px;">
-            <h3>Revise os dados antes de salvar:</h3>
-            <div id="inputsEdicao">
-        </div>
-            <button id="btnSalvarFinal">Salvar na Planilha</button>
-        </div>
+    <div id="areaEdicao">
+        <h3>Revise os dados:</h3>
+        <div id="inputsEdicao"></div>
+        <button id="btnSalvarFinal">Salvar na Planilha</button>
     </div>
+</div>
 
-    <script src="../adm/jscript-adm.js"></script>
+<script src="script_adm.js"></script>
 </body>
 </html>
