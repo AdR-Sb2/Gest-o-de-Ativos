@@ -13,7 +13,17 @@ document.getElementById('formIA').addEventListener('submit', async (e) => {
     formData.append('texto', texto);
 
     try {
-        const res = await fetch(WEB_APP_URL, { method: 'POST', body: formData });
+        const res = await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', // Adicione isso para evitar bloqueios de CORS
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'processar',
+                texto: texto
+            })
+        });
         const textoResposta = await res.text();
         
         // Tenta converter para JSON
