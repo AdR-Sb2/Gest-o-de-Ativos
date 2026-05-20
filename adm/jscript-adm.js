@@ -19,15 +19,16 @@ document.getElementById('formIA').addEventListener('submit', async (e) => {
         });
         
         const textoResposta = await res.text();
-        console.log("Resposta bruta do servidor:", textoResposta); // ISSO VAI MOSTRAR O ERRO REAL
-        
-        if (!textoResposta) {
-            throw new Error("O servidor respondeu vazio.");
+        console.log("Resposta bruta do servidor:", textoResposta); // ISSO É O MAIS IMPORTANTE
+
+        if (textoResposta.startsWith("ERRO_DO_SERVIDOR")) {
+            alert("Erro no Script: " + textoResposta);
+            return;
         }
-        
+
         const json = JSON.parse(textoResposta);
         // ... (resto do código)
-        
+
         // Esconde o form e monta a edição
         document.getElementById('formIA').style.display = "none";
         document.getElementById('areaEdicao').style.display = "block";
