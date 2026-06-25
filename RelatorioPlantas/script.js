@@ -1,29 +1,49 @@
-const LINK_PLANILHA_ELEVATORIAS = '../bd_elevatoria.csv'; // Volta uma pasta para achar o arquivo
+const LINK_PLANILHA_ELEVATORIAS = 'bd_elevatoria.csv';
+const LINK_PLANILHA_RELIABLE = '../bd_elevatoria.csv'; // Caminho alternativo caso esteja na raiz
 let baseElevatorias = [];
 
+// 1. CARREGAMENTO DA PLANILHA REAL
 window.onload = async function() {
+    let carregou = false;
+    
+    // Tenta carregar na pasta local
     try {
-        const response = await fetch(LINK_PLANILHA_ELEVATORIAS);
-        if (!response.ok) throw new Error("Erro ao acessar o arquivo de Elevatórias");
-        const buffer = await response.arrayBuffer();
-        const decoder = new TextDecoder('utf-8'); 
-        let data = decoder.decode(buffer);
-        data = data.replace(/^\uFEFF/, '').replace(/^ï»¿/, '');
-        processarCSVElevatorias(data);
-    } catch (error) {
-        console.error("Erro ao carregar base de elevatórias:", error);
-        alert("Aviso: Não foi possível ler o banco de dados. Modo manual liberado.");
+        carregou = await carregarDados(LINK_PLANILHA_ELEVATORIAS);
+    } catch (e) {
+        console.log("Tentando caminho alternativo na raiz...");
+    }
+
+    // Se não carregou, tenta na pasta anterior (raiz do projeto)
+    if (!carregou) {
+        try {
+            carregou = await carregarDados(LINK_PLANILHA_RELIABLE);
+        } catch (error) {
+            console.error("Erro crítico ao carregar base de elevatórias:", error);
+            alert("Aviso: Não foi possível ler o banco de dados. Modo manual liberado.");
+        }
     }
 };
 
+async function carregarDados(caminho) {
+    const response = await fetch(caminho);
+    if (!response.ok) return false;
+    const buffer = await response.arrayBuffer();
+    const decoder = new TextDecoder('utf-8'); 
+    let data = decoder.decode(buffer);
+    data = data.replace(/^\uFEFF/, '').replace(/^ï»¿/, '');
+    processarCSVElevatorias(data);
+    console.log("Planilha carregada com sucesso a partir de: " + caminho);
+    return true;
+}
+
+// Processa a estrutura do arquivo CSV
 function processarCSVElevatorias(textoCSV) {
     const linhas = textoCSV.split(/\r?\n/);
     if (linhas.length < 2) return;
-    
-    // CORRIGIDO: Removido o "lines =" que travava o código
+
     const separador = linhas[0].includes(';') ? ';' : ',';
-    
     baseElevatorias = []; 
+    
     for (let i = 1; i < linhas.length; i++) {
         if (!linhas[i].trim()) continue;
         const colunas = linhas[i].split(separador).map(celula => celula.replace(/^"|"$/g, '').trim());
@@ -37,6 +57,8 @@ function processarCSVElevatorias(textoCSV) {
         }
     }
 }
+
+// BOTÃO BUSCAR
 document.getElementById('btnBuscar').addEventListener('click', function() {
     const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
     if (!busca) { alert('Digite uma TAG ou Nome para buscar!'); return; }
@@ -55,6 +77,8 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
         document.getElementById('lblPlanta').innerText = busca;
         document.getElementById('lblMunicipio').innerText = "Área de Operação";
     }
+    
+    // Libera a exibição do formulário na tela
     document.getElementById('restoDoFormulario').style.display = 'block';
 });
 
@@ -93,7 +117,7 @@ function gerarTextoRelatorioPlanta() {
     return texto;
 }
 
-// Eventos de Copiar e Enviar via WhatsApp idênticos ao seu modelo original
+// Eventos de Copiar e Enviar via WhatsApp
 document.getElementById('btnCopiarText').addEventListener('click', function() {
     if(!document.getElementById('diagnosticoTexto').value || !document.getElementById('colaboradores').value) {
         alert('Preencha os campos obrigatórios!'); return;
