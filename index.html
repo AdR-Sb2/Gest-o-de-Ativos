@@ -14,30 +14,60 @@
         </header>
 
         <div class="menu-grid">
-    <button class="card" onclick="location.href='atributos/index.html'">
-        <div class="icon">⚙️</div>
-        <div class="info">
-            <strong>Atualizar Atributos</strong>
-            <span>Ficha técnica e status</span>
-        </div>
-    </button>
+            <button class="card" onclick="location.href='atributos/index.html'">
+                <div class="icon">⚙️</div>
+                <div class="info">
+                    <strong>Atualizar Atributos</strong>
+                    <span>Ficha técnica e status</span>
+                </div>
+            </button>
 
-    <button class="card" onclick="location.href='Movimentação/index.html'">
-        <div class="icon">🚛</div>
-        <div class="info">
-            <strong>Movimentação</strong>
-            <span>Transferência de equipamentos</span>
-        </div>
-    </button>
+            <button class="card" onclick="location.href='Movimentação/index.html'">
+                <div class="icon">🚛</div>
+                <div class="info">
+                    <strong>Movimentação</strong>
+                    <span>Transferência de equipamentos</span>
+                </div>
+            </button>
 
-    <button class="card" onclick="location.href='relatorio/index.html'">
-    <div class="icon">📊</div>
-    <div class="info">
-        <strong>Montar Relatórios</strong>
-        <span>Monte o seu relatório</span>
+            <div class="relatorios-container">
+                <button class="card" id="btnRelatoriosMain" onclick="toggleSubMenu()">
+                    <div class="icon">📊</div>
+                    <div class="info">
+                        <strong>Montar Relatórios</strong>
+                        <span>Selecione o tipo de modelo</span>
+                    </div>
+                </button>
+                
+                <div id="subMenuRelatorios" class="sub-menu-box" style="display: none;">
+                    <button class="sub-card" onclick="location.href='relatorio/index.html'">
+                        <span class="sub-icon">⚡</span>
+                        <div class="sub-info">
+                            <strong>Modelo Equipamento</strong>
+                            <span>Motores, bombas e elétrica</span>
+                        </div>
+                    </button>
+                    <button class="sub-card" onclick="location.href='relatorio/relplantas.html'">
+                        <span class="sub-icon">🏢</span>
+                        <div class="sub-info">
+                            <strong>Modelo Plantas</strong>
+                            <span>Infraestrutura e civil</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-</button>
-</div>
-    </div>
+
+    <script>
+        function toggleSubMenu() {
+            const menu = document.getElementById('subMenuRelatorios');
+            if (menu.style.display === 'none') {
+                menu.style.display = 'flex';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>
