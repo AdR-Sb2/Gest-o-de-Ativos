@@ -1,4 +1,4 @@
-const LINK_PLANILHA_ELEVATORIAS = 'bd_elevatoria.csv';
+const LINK_PLANILHA_ELEVATORIAS = '../bd_elevatoria.csv'; // Volta uma pasta para achar o arquivo
 let baseElevatorias = [];
 
 window.onload = async function() {
@@ -19,7 +19,10 @@ window.onload = async function() {
 function processarCSVElevatorias(textoCSV) {
     const linhas = textoCSV.split(/\r?\n/);
     if (linhas.length < 2) return;
-    const separador = lines = linhas[0].includes(';') ? ';' : ',';
+    
+    // CORRIGIDO: Removido o "lines =" que travava o código
+    const separador = linhas[0].includes(';') ? ';' : ',';
+    
     baseElevatorias = []; 
     for (let i = 1; i < linhas.length; i++) {
         if (!linhas[i].trim()) continue;
@@ -34,7 +37,6 @@ function processarCSVElevatorias(textoCSV) {
         }
     }
 }
-
 document.getElementById('btnBuscar').addEventListener('click', function() {
     const busca = document.getElementById('tagAtivo').value.trim().toUpperCase();
     if (!busca) { alert('Digite uma TAG ou Nome para buscar!'); return; }
