@@ -86,10 +86,13 @@ function gerarTextoRelatorioPlanta() {
     const unidade = document.getElementById('lblUnidade').innerText;
     const planta = document.getElementById('lblPlanta').innerText;
     const municipio = document.getElementById('lblMunicipio').innerText;
-    const civil = document.getElementById('estadoCivil').value;
-    const vazamentos = document.getElementById('vazamentos').value;
-    const seguranca = document.getElementById('segurancaPatrimonial').value;
-    const iluminacao = document.getElementById('iluminacao').value;
+    
+    // Se selecionou "Outros", joga um aviso visual no texto
+    const civil = document.getElementById('estadoCivil').value === "Outros" ? "Outros (Ver parecer técnico abaixo) ⚠️" : document.getElementById('estadoCivil').value;
+    const vazamentos = document.getElementById('vazamentos').value === "Outros" ? "Outros (Ver parecer técnico abaixo) ⚠️" : document.getElementById('vazamentos').value;
+    const seguranca = document.getElementById('segurancaPatrimonial').value === "Outros" ? "Outros (Ver parecer técnico abaixo) ⚠️" : document.getElementById('segurancaPatrimonial').value;
+    const iluminacao = document.getElementById('iluminacao').value === "Outros" ? "Outros (Ver parecer técnico abaixo) ⚠️" : document.getElementById('iluminacao').value;
+    
     const statusGeral = document.getElementById('statusGeralPlanta').value;
     const diagnostico = document.getElementById('diagnosticoTexto').value.trim();
     const necessidades = document.getElementById('necessidades').value.trim() || 'Nenhuma pendência crítica';
