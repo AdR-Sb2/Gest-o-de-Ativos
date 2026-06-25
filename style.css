@@ -194,3 +194,73 @@ header p {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Animações */
+
+/* ==========================================================================
+   SISTEMA DE ANIMAÇÕES INTERATIVAS
+   ========================================================================== */
+
+/* 1. Animação de entrada para o Header (Efeito Fade In vindo de cima) */
+header {
+    animation: fadeDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 2. Aplica efeitos individuais de atraso nos cards para entrarem em cascata */
+.menu-grid .card:nth-child(1) {
+    animation: slideUpIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.menu-grid .card:nth-child(2) {
+    animation: slideUpIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+/* Alvo do container/botão de relatórios */
+.menu-grid .card:nth-child(3),
+.relatorios-container {
+    animation: slideUpIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+/* 3. Efeito de pulso discreto e brilho ao passar o mouse em qualquer card */
+.card {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.01) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.45), 
+                0 0 15px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* Efeito de clique físico real no botão */
+.card:active {
+    transform: translateY(-1px) scale(0.98) !important;
+    box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.3) !important;
+    transition: transform 0.05s ease !important;
+}
+
+/* 4. Definições das estruturas das animações (Keyframes) */
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUpIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
