@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Relatório de Planta / Unidade</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Relatório Geral de Planta / Unidade</h1>
+            <p>Insira a TAG ou Nome para validar e gerar o relatório situacional da infraestrutura.</p>
+        </header>
+
+        <form id="plantaForm">
+            <div class="section-block">
+                <h2>1. Identificação da Unidade</h2>
+                <div class="form-group">
+                    <label for="tagAtivo">Insira a Tag ou Nome da Planta</label>
+                    <div class="search-box">
+                        <input type="text" id="tagAtivo" placeholder="Ex: PL-RJB-EAT0746" required>
+                        <button type="button" id="btnBuscar" class="btn-check">Buscar</button>
+                    </div>
+                </div>
+                
+                <div id="infoAtivo" class="auto-fields">
+                    <p><strong>Unidade:</strong> <span id="lblUnidade">---</span></p>
+                    <p><strong>Planta/Infra:</strong> <span id="lblPlanta">---</span></p>
+                    <p><strong>Município:</strong> <span id="lblMunicipio">---</span></p>
+                </div>
+            </div>
+
+            <div id="restoDoFormulario" style="display: none;">
+                
+                <div class="section-block">
+                    <h2>2. Condições da Infraestrutura</h2>
+                    <div class="form-group">
+                        <label for="estadoCivil">Estrutura Civil / Prédio</label>
+                        <select id="estadoCivil">
+                            <option value="Excelente">Excelente</option>
+                            <option value="Bom">Bom / Sem avarias graves</option>
+                            <option value="Regular">Regular (Necessita pequenas reformas/pintura)</option>
+                            <option value="Crítico">Crítico (Infiltrações, rachaduras, risco)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vazamentos">Vazamentos / Infiltrações na Unidade?</label>
+                        <select id="vazamentos">
+                            <option value="Nenhum detectado">Nenhum detectado</option>
+                            <option value="Pequeno vazamento em conexões">Pequeno vazamento em conexões/tubulações</option>
+                            <option value="Vazamento crítico / Alagamento">Vazamento crítico / Risco de alagamento</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <h2>3. Segurança e Acesso</h2>
+                    <div class="form-group">
+                        <label for="segurancaPatrimonial">Cercas, Portões e Cadeados</label>
+                        <select id="segurancaPatrimonial">
+                            <option value="Conforme">Trancado e Seguro (Conforme)</option>
+                            <option value="Sem cadeado / Portão aberto">Portão Danificado / Sem Cadeado</option>
+                            <option value="Sinais de invasão / Vandalismo">Sinais de Invasão / Vandalismo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="iluminacao">Iluminação Interna / Externa</label>
+                        <select id="iluminacao">
+                            <option value="100% Operacional">100% Operacional</option>
+                            <option value="Lâmpadas queimadas">Parcial (Lâmpadas queimadas)</option>
+                            <option value="Sem iluminação / No escuro">Totalmente às escuras</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <h2>4. Resumo da Situação Geral</h2>
+                    <div class="form-group">
+                        <label for="statusGeralPlanta">Status Operacional da Unidade *</label>
+                        <select id="statusGeralPlanta" style="font-weight: bold; color: var(--primary);">
+                            <option value="OPERANDO EM CONDIÇÕES NORMAIS">Operando em Condições Normais ✅</option>
+                            <option value="OPERANDO COM RESTRIÇÕES">Operando com Restrições ⚠️</option>
+                            <option value="PARALISADA / FORA DE OPERAÇÃO">Paralisada / Fora de Operação ❌</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="diagnosticoTexto">Parecer Técnico / Situação Encontrada *</label>
+                        <textarea id="diagnosticoTexto" rows="4" placeholder="Descreva o estado geral da planta, limpeza, painéis elétricos, e observações relevantes da visita..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="necessidades">Necessidades / Pendências Críticas</label>
+                        <input type="text" id="necessidades" placeholder="Ex: Solicitar roçada, troca de lâmpadas externa">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="colaboradores">Técnico/Responsável pela Inspeção *</label>
+                        <input type="text" id="colaboradores" placeholder="Ex: Carlos Silva" required>
+                    </div>
+                </div>
+
+                <div class="actions-stack">
+                    <button type="button" id="btnCopiarText" class="btn-copy">Copiar Texto do Relatório 📋</button>
+                    <button type="submit" id="btnWhats" class="btn-submit">Enviar para o WhatsApp 🚀</button>
+                    <button type="button" class="btn-back" onclick="history.back()">Voltar</button>
+                </div>
+            </div> 
+        </form>
+    </div>
+
+    <script src="script_planta.js"></script>
+</body>
+</html>
